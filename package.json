@@ -1,0 +1,46 @@
+{
+  "name": "ai-chatbot-rag",
+  "version": "1.0.0",
+  "description": "Production-ready conversational AI chatbot with advanced RAG capabilities",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "scrape": "node scripts/scrape.js"
+  },
+  "keywords": [
+    "ai",
+    "chatbot",
+    "rag",
+    "openai",
+    "embeddings",
+    "retrieval-augmented-generation",
+    "nlp",
+    "conversational-ai"
+  ],
+  "author": "AI Chatbot RAG",
+  "license": "MIT",
+  "dependencies": {
+    "@qdrant/js-client-rest": "^1.15.1",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.10",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.2.1",
+    "helmet": "^7.1.0",
+    "mammoth": "^1.11.0",
+    "multer": "^2.0.2",
+    "openai": "^5.23.1",
+    "uuid": "^13.0.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
