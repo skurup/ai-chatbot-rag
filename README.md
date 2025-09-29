@@ -2,9 +2,22 @@
 
 A production-ready conversational AI chatbot built with **Retrieval-Augmented Generation (RAG)** capabilities. The system scrapes websites, processes content into vector embeddings, and uses advanced retrieval strategies to provide accurate, context-aware responses with source attribution.
 
+## ✨ **Latest Enhancements**
+
+- 🗄️ **Qdrant Vector Database Integration** - High-performance vector storage and retrieval
+- 📊 **Enhanced Citation System** - Rich citations with confidence scoring and keyword highlighting
+- 🎯 **Advanced Source Filtering** - Filter by brand/domain (Atlan, Snowflake, Databricks)
+- 🔄 **Recursive Web Scraping** - Intelligent link following with depth control and URL tracking
+- 📁 **File Upload Support** - Process TXT, DOCX, and DOC documents
+- 📤 **Conversation Export** - Export chat history in JSON, TXT, CSV, and Markdown formats
+- 🔍 **Multi-Strategy Search** - Semantic, keyword, hybrid, and contextual search with intelligent fallbacks
+- 📈 **Comprehensive Analytics** - Real-time monitoring, health checks, and performance metrics
+- 🛡️ **Production Security** - Helmet.js, rate limiting, input validation, and structured logging
+
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![OpenAI](https://img.shields.io/badge/OpenAI-API-blue.svg)](https://openai.com/)
 [![Express.js](https://img.shields.io/badge/Express.js-4.18+-lightgrey.svg)](https://expressjs.com/)
+[![Qdrant](https://img.shields.io/badge/Qdrant-Vector%20DB-orange.svg)](https://qdrant.tech/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🚀 Quick Start
@@ -13,7 +26,8 @@ A production-ready conversational AI chatbot built with **Retrieval-Augmented Ge
 
 - **Node.js 18+** with ES6 module support
 - **OpenAI API key** with sufficient credits
-- **512MB+ RAM** for embedding storage
+- **Qdrant Vector Database** (optional - Docker recommended)
+- **1GB+ RAM** for embedding storage and vector operations
 - **Internet connection** for web scraping
 
 ### Installation
@@ -25,22 +39,32 @@ cd ai-chatbot-rag
 npm install
 ```
 
-2. **Configure environment:**
+2. **Setup Qdrant (Optional but Recommended):**
 ```bash
-cp .env.example .env
-# Edit .env with your OpenAI API key
+# Using Docker (recommended)
+docker run -p 6333:6333 qdrant/qdrant
+
+# Or using Docker Compose
+docker-compose up -d qdrant
 ```
 
-3. **Configure URLs to scrape:**
+3. **Configure environment:**
+```bash
+cp .env.example .env
+# Edit .env with your OpenAI API key and Qdrant settings
+```
+
+4. **Configure URLs to scrape:**
 ```javascript
 // Edit config/urls.js
 export const URLS_TO_SCRAPE = [
-  'https://your-docs.com',
-  'https://your-faq.com'
+  'https://docs.atlan.com',
+  'https://docs.snowflake.com',
+  'https://docs.databricks.com'
 ];
 ```
 
-4. **Start the application:**
+5. **Start the application:**
 ```bash
 # Development mode with auto-restart
 npm run dev
@@ -49,10 +73,11 @@ npm run dev
 npm start
 ```
 
-5. **Access the application:**
+6. **Access the application:**
 - **Chat Interface:** http://localhost:3000
 - **Analytics Dashboard:** http://localhost:3000/dashboard
 - **Health Check:** http://localhost:3000/api/health
+- **Qdrant Dashboard:** http://localhost:6333/dashboard
 
 ## 🏗️ Architecture Overview
 
@@ -67,40 +92,53 @@ npm start
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │  Content Store  │    │  Vector Store   │    │ Conversation    │
-│   (Metadata)    │    │  (Embeddings)   │    │    History      │
+│   (Metadata)    │    │   (Qdrant)      │    │    History      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ URL Tracking    │    │ Enhanced        │    │ File Upload     │
+│ (Persistent)    │    │ Citations       │    │ & Export        │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ### RAG Pipeline
 
 ```
-1. Content Ingestion → Web scraping with intelligent extraction
+1. Content Ingestion → Recursive web scraping with URL tracking
 2. Text Processing  → Smart chunking with sentence boundaries
-3. Embedding        → OpenAI text-embedding-ada-002
-4. Storage          → In-memory vector store
-5. Retrieval        → Multi-strategy search (semantic/keyword/hybrid/contextual)
-6. Generation       → OpenAI GPT with context-augmented prompts
-7. Response         → Formatted output with source citations
+3. Embedding        → OpenAI text-embedding-ada-002 (1536 dimensions)
+4. Storage          → Qdrant vector database with fallback to in-memory
+5. Retrieval        → Multi-strategy search with intelligent fallbacks
+6. Filtering        → Brand/domain-based source filtering
+7. Generation       → OpenAI GPT with context-augmented prompts
+8. Response         → Enhanced citations with confidence scoring
+9. Export           → Conversation history and file processing
 ```
 
 ## 🧠 RAG Capabilities
 
 ### Multiple Retrieval Strategies
 
-| Strategy | Description | Best For |
-|----------|-------------|----------|
-| **Semantic** | Vector similarity search | Conceptual understanding |
-| **Keyword** | Term frequency matching | Exact term matches |
-| **Hybrid** | Combined semantic + keyword (70%/30%) | Balanced accuracy |
-| **Contextual** | Conversation history-aware | Follow-up questions |
+| Strategy | Description | Best For | Qdrant Support |
+|----------|-------------|----------|----------------|
+| **Semantic** | Vector similarity search | Conceptual understanding | ✅ Native |
+| **Keyword** | Term frequency matching | Exact term matches | ✅ Fallback |
+| **Hybrid** | Combined semantic + keyword (70%/30%) | Balanced accuracy | ✅ Optimized |
+| **Contextual** | Conversation history-aware | Follow-up questions | ✅ Enhanced |
 
 ### Advanced Features
 
 - **Smart Chunking:** Sentence-boundary aware with configurable overlap
 - **Content Filtering:** Removes navigation, ads, and irrelevant elements
-- **Source Attribution:** Automatic citation with relevance scores
-- **Context Assembly:** Token-aware context building from retrieved chunks
-- **Conversation Memory:** Maintains context across multiple exchanges
+- **Enhanced Citations:** Rich metadata with confidence scores and keyword highlighting
+- **Source Filtering:** Filter by brand/domain (Atlan, Snowflake, Databricks)
+- **URL Tracking:** Persistent tracking to prevent re-scraping
+- **Recursive Scraping:** Intelligent link following with depth control
+- **File Processing:** Support for TXT, DOCX, and DOC documents
+- **Conversation Export:** Multiple export formats (JSON, TXT, CSV, Markdown)
+- **Vector Database:** High-performance Qdrant integration with fallback
+- **Intelligent Fallbacks:** Automatic strategy switching for optimal results
 
 ## 📁 Project Structure
 
@@ -109,35 +147,52 @@ ai-chatbot-rag/
 ├── server.js              # Main Express server with RAG integration
 ├── package.json           # Dependencies and scripts
 ├── .env.example           # Environment configuration template
-├── src/                   # Core backend modules
-│   ├── scraper.js         # Web scraping with content extraction
-│   ├── embeddings.js      # Vector embedding creation and similarity
-│   ├── rag.js            # Advanced RAG engine with multiple strategies
-│   └── chat.js           # Chat logic with OpenAI integration
+├── .gitignore            # Git ignore rules
+├── LICENSE               # MIT License
+├── src/                  # Core backend modules
+│   ├── scraper.js        # Recursive web scraping with URL tracking
+│   ├── embeddings.js     # Vector embedding creation and similarity
+│   ├── rag.js           # Advanced RAG engine with Qdrant integration
+│   ├── chat.js          # Chat logic with OpenAI integration
+│   ├── qdrantService.js # Qdrant vector database service
+│   ├── citationManager.js # Enhanced citation generation
+│   ├── queryOptimizer.js # Query preprocessing and optimization
+│   ├── fileProcessor.js # File upload processing (TXT, DOCX, DOC)
+│   ├── conversationExport.js # Conversation export functionality
+│   ├── urlTracker.js     # Persistent URL tracking
+│   └── logger.js        # Structured logging with Winston
 ├── config/
-│   └── urls.js           # Configurable URLs for scraping
+│   └── urls.js          # Configurable URLs for scraping
 ├── scripts/
-│   └── scrape.js         # Manual scraping utility
-└── public/               # Frontend assets
-    ├── index.html        # Main chat interface
-    ├── style.css         # Complete responsive styling
-    ├── script.js         # Frontend JavaScript logic
-    └── rag-dashboard.html # Analytics and testing dashboard
+│   └── scrape.js        # Manual scraping utility
+├── public/              # Frontend assets
+│   ├── index.html       # Main chat interface with enhanced citations
+│   ├── style.css        # Complete responsive styling
+│   ├── script.js        # Frontend JavaScript logic
+│   └── rag-dashboard.html # Analytics and testing dashboard
+├── data/                # Persistent data storage
+│   └── scraped_urls.json # URL tracking data
+├── logs/                # Application logs
+├── uploads/             # User uploaded files
+└── exports/             # Exported conversation files
 ```
 
 ## 🛠️ API Reference
 
 ### Chat Endpoints
 
+### Chat Endpoints
+
 #### `POST /api/chat`
-Send message and get AI response with sources.
+Send message and get AI response with enhanced citations.
 
 ```javascript
 // Request
 {
   "message": "What is artificial intelligence?",
   "conversationId": "optional-conversation-id",
-  "searchStrategy": "hybrid" // semantic, keyword, hybrid, contextual
+  "searchStrategy": "hybrid", // semantic, keyword, hybrid, contextual
+  "sourceFilter": "all" // all, Atlan, Snowflake, Databricks
 }
 
 // Response
@@ -148,53 +203,178 @@ Send message and get AI response with sources.
     {
       "url": "https://source.com",
       "title": "Source Title",
-      "similarity": 0.85
+      "similarity": 0.85,
+      "chunks": 2
     }
   ],
+  "citations": {
+    "citations": [
+      {
+        "id": "citation_123",
+        "source": {
+          "title": "Source Title",
+          "url": "https://source.com",
+          "type": "documentation",
+          "domain": "docs.example.com"
+        },
+        "content": {
+          "text": "Content excerpt...",
+          "excerpt": "Highlighted excerpt...",
+          "wordCount": 150,
+          "chunkIndex": 0,
+          "totalChunks": 5
+        },
+        "relevance": {
+          "similarity": 0.85,
+          "confidence": 0.92,
+          "matchType": "semantic_match",
+          "keywords": ["artificial", "intelligence"]
+        },
+        "highlights": [
+          {"word": "artificial", "position": 10, "length": 10}
+        ]
+      }
+    ],
+    "summary": {
+      "totalSources": 3,
+      "uniqueDomains": 2,
+      "confidence": 0.89,
+      "coverage": 0.75,
+      "sourceTypes": {"documentation": 3}
+    }
+  },
   "retrievedChunks": 5,
   "searchStrategy": "hybrid",
   "conversationId": "chat_123",
-  "timestamp": "2024-01-01T00:00:00.000Z"
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "usage": {
+    "prompt_tokens": 500,
+    "completion_tokens": 100,
+    "total_tokens": 600
+  },
+  "processingTime": 1500
 }
 ```
 
 ### Management Endpoints
 
 #### `GET /api/health`
-System status and knowledge base metrics.
+System status and knowledge base metrics with Qdrant health check.
+
+#### `GET /api/stats`
+Detailed system statistics including vector database metrics.
+
+#### `GET /api/sources`
+Get available sources with brand filtering options.
 
 #### `POST /api/scrape`
-Trigger manual content re-scraping.
+Trigger manual content re-scraping with recursive options.
 
 #### `POST /api/add-url`
-Add single URL to knowledge base.
+Add single URL to knowledge base with recursive scraping.
 
 ```javascript
 // Request
 {
   "url": "https://new-source.com"
 }
-```
 
-#### `POST /api/test-search`
-Test different search strategies.
-
-```javascript
-// Request
+// Response
 {
-  "query": "test query",
-  "strategies": ["semantic", "keyword", "hybrid"]
+  "success": true,
+  "message": "URL and associated links scraped successfully",
+  "stats": {
+    "url": "https://new-source.com",
+    "pagesScraped": 25,
+    "totalChunks": 150,
+    "wordCount": 45000,
+    "pages": [
+      {
+        "title": "Page Title",
+        "url": "https://new-source.com/page",
+        "wordCount": 1200,
+        "depth": 1
+      }
+    ]
+  }
 }
 ```
 
-#### `GET /api/stats`
-Detailed system statistics.
+#### `POST /api/upload`
+Upload and process documents (TXT, DOCX, DOC).
 
-#### `GET /api/conversation/:id`
-Export conversation history.
+```javascript
+// FormData request
+const formData = new FormData();
+formData.append('file', fileInput.files[0]);
 
-#### `DELETE /api/conversation/:id`
-Clear conversation history.
+// Response
+{
+  "success": true,
+  "message": "File processed successfully",
+  "document": {
+    "filename": "document.pdf",
+    "type": "application/pdf",
+    "size": 1024000,
+    "chunks": 15,
+    "wordCount": 3000
+  }
+}
+```
+
+#### `GET /api/conversation/:id/export`
+Export conversation history in multiple formats.
+
+```javascript
+// Query parameters
+?format=json|txt|csv|markdown
+
+// Response
+{
+  "success": true,
+  "filename": "conversation_123.json",
+  "downloadUrl": "/api/exports/conversation_123.json"
+}
+```
+
+#### `GET /api/exports`
+List all exported conversation files.
+
+#### `GET /api/exports/:filename`
+Download exported conversation file.
+
+#### `DELETE /api/exports/:filename`
+Delete exported conversation file.
+
+#### `GET /api/url-tracking`
+Get URL tracking statistics and tracked URLs.
+
+#### `POST /api/url-tracking/clear`
+Clear all tracked URLs.
+
+#### `POST /api/url-tracking/remove`
+Remove specific URL from tracking.
+
+#### `POST /api/debug-search`
+Debug search with custom threshold.
+
+#### `GET /api/debug-kb`
+Debug knowledge base state.
+
+#### `GET /api/debug-qdrant`
+Debug Qdrant collection and configuration.
+
+#### `POST /api/recreate-qdrant`
+Recreate Qdrant collection (for troubleshooting).
+
+#### `POST /api/test-qdrant-search`
+Direct Qdrant search test.
+
+#### `POST /api/test-rag-search`
+Direct RAG search test.
+
+#### `POST /api/test-rag-main-search`
+Direct main search method test.
 
 ## ⚙️ Configuration
 
@@ -210,8 +390,11 @@ NODE_ENV=development
 
 # Scraping Configuration
 SCRAPE_DELAY_MS=1000
-MAX_CONTENT_LENGTH=10000
-MIN_CONTENT_LENGTH=100
+MAX_CONTENT_LENGTH=50000
+MIN_CONTENT_LENGTH=50
+MAX_SCRAPE_DEPTH=3
+MAX_SCRAPE_PAGES=100
+FOLLOW_SAME_DOMAIN=true
 
 # RAG Configuration
 CHUNK_SIZE=500
@@ -221,7 +404,19 @@ SIMILARITY_THRESHOLD=0.7
 
 # Rate Limiting
 RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_MAX_REQUESTS=100000
+
+# Qdrant Configuration (Optional - for vector database)
+USE_QDRANT=true
+QDRANT_URL=http://localhost:6333
+QDRANT_API_KEY=
+QDRANT_COLLECTION_NAME=rag_chunks
+QDRANT_DISTANCE=Cosine
+QDRANT_VECTOR_SIZE=1536
+
+# Logging Configuration
+LOG_LEVEL=info
+LOG_FILE=logs/combined.log
 ```
 
 ### URL Configuration
@@ -230,20 +425,34 @@ Edit `config/urls.js` to customize scraping targets:
 
 ```javascript
 export const URLS_TO_SCRAPE = [
-  'https://docs.openai.com/docs/introduction',
+  'https://docs.atlan.com',
+  'https://docs.snowflake.com',
+  'https://docs.databricks.com',
   'https://your-company.com/faq',
   'https://your-docs.com/api-reference'
 ];
 
 // Custom selectors for specific domains
 export const DOMAIN_SELECTORS = {
-  'docs.openai.com': {
-    content: 'article, .docs-content',
+  'docs.atlan.com': {
+    content: 'article, .docs-content, main',
+    title: 'h1, .page-title, title',
+    exclude: '.navigation, .sidebar, .ads'
+  },
+  'docs.snowflake.com': {
+    content: '.content, .main-content, article',
     title: 'h1, .page-title',
-    exclude: '.navigation, .sidebar'
+    exclude: '.nav, .sidebar, .footer'
+  },
+  'docs.databricks.com': {
+    content: '.content, .main-content, article',
+    title: 'h1, .page-title',
+    exclude: '.nav, .sidebar, .footer'
   }
 };
 ```
+
+## 🧪 Testing and Development
 
 ## 🧪 Testing and Development
 
@@ -264,9 +473,40 @@ node scripts/scrape.js --test --query="What is AI?"
 Use the dashboard or API to test different retrieval strategies:
 
 ```bash
-curl -X POST http://localhost:3000/api/test-search \
+# Test semantic search
+curl -X POST http://localhost:3000/api/test-rag-search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "artificial intelligence", "threshold": 0.3}'
+
+# Test Qdrant directly
+curl -X POST http://localhost:3000/api/test-qdrant-search \
   -H "Content-Type: application/json" \
   -d '{"query": "artificial intelligence"}'
+
+# Test main search pipeline
+curl -X POST http://localhost:3000/api/test-rag-main-search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "artificial intelligence"}'
+```
+
+### Debugging Tools
+
+Access debugging endpoints for troubleshooting:
+
+```bash
+# Check knowledge base state
+curl http://localhost:3000/api/debug-kb
+
+# Check Qdrant status
+curl http://localhost:3000/api/debug-qdrant
+
+# Test with custom threshold
+curl -X POST http://localhost:3000/api/debug-search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "test query", "threshold": 0.1}'
+
+# Recreate Qdrant collection (if needed)
+curl -X POST http://localhost:3000/api/recreate-qdrant
 ```
 
 ### Development Mode
@@ -279,22 +519,30 @@ npm run dev
 
 ## 🎨 User Interface
 
+## 🎨 User Interface
+
 ### Chat Interface Features
 
 - **Real-time Messaging:** Instant responses with typing indicators
-- **Source Citations:** Clickable links with relevance scores
+- **Enhanced Citations:** Rich citation sidebar with confidence scores and keyword highlighting
+- **Source Filtering:** Filter by brand/domain (Atlan, Snowflake, Databricks)
 - **Strategy Selection:** Choose retrieval method (semantic/keyword/hybrid/contextual)
-- **Conversation History:** Persistent chat sessions
-- **Responsive Design:** Mobile-friendly interface
+- **Conversation History:** Persistent chat sessions with export options
+- **File Upload:** Drag-and-drop document processing (TXT, DOCX, DOC)
+- **Responsive Design:** Mobile-friendly interface with modern UI
 - **Character Limits:** Input validation and word count
+- **Citation Export:** Export citations in multiple formats
 
 ### Analytics Dashboard
 
-- **System Monitoring:** Health, uptime, memory usage
-- **Knowledge Base Stats:** Chunks, sources, embeddings
-- **Strategy Testing:** Compare retrieval methods
-- **Manual Management:** Trigger scraping, add URLs
-- **Real-time Logs:** System activity monitoring
+- **System Monitoring:** Health, uptime, memory usage, Qdrant status
+- **Knowledge Base Stats:** Chunks, sources, embeddings, vector database metrics
+- **Strategy Testing:** Compare retrieval methods with real-time results
+- **Manual Management:** Trigger scraping, add URLs, manage sources
+- **Real-time Logs:** System activity monitoring with structured logging
+- **Debug Tools:** Direct access to debugging endpoints
+- **URL Tracking:** Monitor scraped URLs and manage tracking
+- **Export Management:** View and manage exported conversation files
 
 ## 🚀 Deployment
 
@@ -553,31 +801,37 @@ curl -X POST http://localhost:3000/api/test-search \
 
 ## 📋 TODO / Roadmap
 
-### Immediate Enhancements
+### ✅ Completed Features
 
-- [ ] Vector database integration (Pinecone, Weaviate)
-- [ ] User authentication and sessions
-- [ ] File upload capabilities (PDF, DOCX)
-- [ ] Conversation export/import
-- [ ] Mobile app (React Native)
+- [x] **Qdrant Vector Database Integration** - High-performance vector storage
+- [x] **Enhanced Citation System** - Rich citations with confidence scoring
+- [x] **Source Filtering** - Brand/domain-based filtering (Atlan, Snowflake, Databricks)
+- [x] **Recursive Web Scraping** - Intelligent link following with URL tracking
+- [x] **File Upload Support** - TXT, DOCX, DOC document processing
+- [x] **Conversation Export** - Multiple export formats (JSON, TXT, CSV, Markdown)
+- [x] **Multi-Strategy Search** - Semantic, keyword, hybrid, contextual with fallbacks
+- [x] **Comprehensive Logging** - Structured logging with Winston
+- [x] **Production Security** - Helmet.js, rate limiting, input validation
+- [x] **Debug Tools** - Comprehensive debugging endpoints and monitoring
 
-### Advanced Features
+### 🚧 In Progress / Next Phase
 
-- [ ] Multi-modal content processing (images, videos)
-- [ ] Real-time collaborative features
-- [ ] Advanced analytics and insights
-- [ ] Enterprise SSO integration
-- [ ] Custom model fine-tuning
-- [ ] Webhook integrations
+- [ ] **User Authentication** - JWT-based authentication and sessions
+- [ ] **PDF Processing** - Enhanced PDF document support
+- [ ] **Mobile App** - React Native mobile application
+- [ ] **Advanced Analytics** - Detailed usage analytics and insights
+- [ ] **Webhook Integrations** - Real-time notifications and integrations
 
-### Performance & Scaling
+### 🔮 Future Enhancements
 
-- [ ] Horizontal scaling support
-- [ ] Advanced caching strategies
-- [ ] Streaming responses
-- [ ] Background job processing
-- [ ] Database optimization
-- [ ] CDN integration
+- [ ] **Multi-modal Processing** - Images, videos, and multimedia content
+- [ ] **Real-time Collaboration** - Multi-user chat sessions
+- [ ] **Enterprise SSO** - SAML, OAuth, LDAP integration
+- [ ] **Custom Model Fine-tuning** - Domain-specific model training
+- [ ] **Advanced Caching** - Redis-based intelligent caching
+- [ ] **Streaming Responses** - Real-time response streaming
+- [ ] **Background Processing** - Queue-based job processing
+- [ ] **CDN Integration** - Global content distribution
 
 ## 📄 License
 
@@ -586,8 +840,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - **OpenAI** for GPT and embedding models
+- **Qdrant** for high-performance vector database
 - **Express.js** for the web framework
 - **Cheerio** for HTML parsing
+- **Winston** for structured logging
+- **Helmet.js** for security features
 - **Node.js** community for excellent packages
 
 ## 📞 Support
