@@ -1040,11 +1040,12 @@ app.get('/api/conversation/:id/export', (req, res) => {
     }
 
     const exportResult = conversationExport.exportConversation(id, history, format);
-    
+
     res.json({
       success: true,
       message: 'Conversation exported successfully',
-      ...exportResult
+      ...exportResult,
+      downloadUrl: `/api/conversation/${id}/download/${exportResult.filename}`
     });
 
   } catch (error) {

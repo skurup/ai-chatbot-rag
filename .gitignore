@@ -87,7 +87,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public - removed to track frontend files
 
 # Storybook build outputs
 .out

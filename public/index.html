@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot with RAG</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-robot"></i> AI Chatbot</h1>
+                <p>Powered by Advanced RAG Technology</p>
+            </div>
+        </header>
+
+        <!-- Three-pane layout -->
+        <div class="main-layout">
+            <!-- Left Pane: Controls and Dashboard -->
+            <aside class="left-pane">
+                <div class="pane-header">
+                    <h3><i class="fas fa-cog"></i> Controls</h3>
+                </div>
+
+                <!-- System Status -->
+                <div class="status-section">
+                    <h4><i class="fas fa-heartbeat"></i> System Status</h4>
+                    <div class="status-info">
+                        <span id="statusText">Initializing...</span>
+                        <div class="loading-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <i class="fas fa-database"></i>
+                            <span id="chunkCount">Chunks: 0</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-book"></i>
+                            <span id="sourceCount">Sources: 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Configuration -->
+                <div class="search-config">
+                    <h4><i class="fas fa-search"></i> Search Settings</h4>
+                    <div class="config-group">
+                        <label for="searchStrategy">Search Strategy</label>
+                        <select id="searchStrategy" title="Choose how to search the knowledge base">
+                            <option value="hybrid">🎯 Smart Search</option>
+                            <option value="semantic">🧠 Concept Search</option>
+                            <option value="keyword">🔍 Exact Search</option>
+                            <option value="contextual">💭 Context-Aware</option>
+                        </select>
+                    </div>
+                    <div class="config-group">
+                        <label for="sourceFilter">Source Filter</label>
+                        <select id="sourceFilter" title="Choose which sources to search">
+                            <option value="all">📚 All Sources</option>
+                            <!-- Sources will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dashboard Actions -->
+                <div class="dashboard-section">
+                    <h4><i class="fas fa-chart-bar"></i> Dashboard</h4>
+                    <button id="dashboardBtn" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i> Open Dashboard
+                    </button>
+                    <button id="clearBtn" class="btn btn-secondary">
+                        <i class="fas fa-trash"></i> Clear Chat
+                    </button>
+                </div>
+
+                <!-- Conversation Export -->
+                <div class="export-section">
+                    <h4><i class="fas fa-download"></i> Export</h4>
+                    <div class="export-controls">
+                        <select id="exportFormat" class="export-format-select">
+                            <option value="json">📄 JSON</option>
+                            <option value="txt">📝 Text</option>
+                            <option value="csv">📊 CSV</option>
+                            <option value="md">📑 Markdown</option>
+                        </select>
+                        <button id="exportConversationBtn" class="btn btn-success">
+                            <i class="fas fa-file-export"></i> Export Chat
+                        </button>
+                    </div>
+                </div>
+
+
+                <!-- Quick Tips -->
+                <div class="tips-section">
+                    <h4><i class="fas fa-lightbulb"></i> Quick Tips</h4>
+                    <ul class="tips-list">
+                        <li><strong>Smart Search:</strong> Best for most questions</li>
+                        <li><strong>Concept Search:</strong> Find related topics</li>
+                        <li><strong>Exact Search:</strong> Specific terms/phrases</li>
+                        <li><strong>Context-Aware:</strong> Follow-up questions</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Middle Pane: Chat Interface -->
+            <main class="middle-pane">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="welcome-message">
+                            <div class="message bot-message">
+                                <div class="message-avatar">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        <p>👋 Hello! I'm your AI assistant powered by RAG technology.</p>
+                                        <p>Ask me anything from our knowledge base and I'll provide accurate, source-backed responses.</p>
+                                        <p><strong>Try asking:</strong></p>
+                                        <ul>
+                                            <li>Questions about topics in our knowledge base</li>
+                                            <li>Requests for specific information</li>
+                                            <li>Follow-up questions for more details</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="typing-indicator" id="typingIndicator">
+                        <div class="message bot-message">
+                            <div class="message-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="typing-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <!-- Suggested Questions -->
+                <div class="suggestions-container" id="suggestionsContainer" style="display: none;">
+                    <div class="suggestions-header">
+                        <h4><i class="fas fa-lightbulb"></i> Suggested Questions</h4>
+                        <button id="hideSuggestions" class="btn-icon" title="Hide suggestions">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="suggestions-list" id="suggestionsList">
+                        <!-- Suggestions will be populated here -->
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="input-field">
+                        <textarea
+                            id="messageInput"
+                            placeholder="Ask me anything..."
+                            rows="1"
+                            maxlength="1000"
+                        ></textarea>
+                        <button id="sendBtn" class="send-btn" disabled>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="input-footer">
+                        <span id="charCount">0/1000</span>
+                        <span class="tip">Press Enter to send, Shift+Enter for new line</span>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Pane: Enhanced Citations and Sources -->
+            <aside class="right-pane">
+                <div class="pane-header">
+                    <h3><i class="fas fa-quote-right"></i> Citations</h3>
+                    <div class="citation-controls">
+                        <button id="toggleCitations" class="btn-icon" title="Toggle Citation Details">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                        </button>
+                        <button id="exportCitations" class="btn-icon" title="Export Citations">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Citation Summary -->
+                <div class="citation-summary" id="citationSummary" style="display: none;">
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-database"></i>
+                            <span id="totalSources">0</span>
+                            <small>Sources</small>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-chart-line"></i>
+                            <span id="avgConfidence">0%</span>
+                            <small>Confidence</small>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-coverage"></i>
+                            <span id="coverage">0%</span>
+                            <small>Coverage</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Citations Container -->
+                <div class="citations-container" id="citationsContainer">
+                    <div class="no-citations">
+                        <i class="fas fa-book-open"></i>
+                        <p>Citations will appear here when you ask questions.</p>
+                        <p>Sources used to generate responses will be listed with relevance scores and confidence levels.</p>
+                    </div>
+                </div>
+
+                <!-- Citation Filters -->
+                <div class="citation-filters" id="citationFilters" style="display: none;">
+                    <h4><i class="fas fa-filter"></i> Filter Citations</h4>
+                    <div class="filter-group">
+                        <label for="confidenceFilter">Min Confidence</label>
+                        <input type="range" id="confidenceFilter" min="0" max="100" value="50" step="10">
+                        <span id="confidenceValue">50%</span>
+                    </div>
+                    <div class="filter-group">
+                        <label for="sourceTypeFilter">Source Type</label>
+                        <select id="sourceTypeFilter">
+                            <option value="all">All Types</option>
+                            <option value="documentation">Documentation</option>
+                            <option value="web_page">Web Pages</option>
+                            <option value="uploaded_file">Uploaded Files</option>
+                        </select>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-cog fa-spin"></i>
+            <p>Processing your request...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

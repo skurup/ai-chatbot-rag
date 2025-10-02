@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Analytics Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Dashboard-specific styles */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: var(--bg-primary);
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .dashboard-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+
+        .nav-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-content {
+            color: var(--text-secondary);
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .strategy-test {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+
+        .test-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .test-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .test-results {
+            margin-top: 1rem;
+        }
+
+        .result-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .strategy-name {
+            color: var(--primary-color);
+        }
+
+        .response-time {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .response-preview {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .status-healthy { background: var(--success-color); }
+        .status-warning { background: var(--warning-color); }
+        .status-error { background: var(--error-color); }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .logs-container {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 0.25rem;
+        }
+
+        .log-timestamp {
+            color: #888;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .test-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1><i class="fas fa-chart-bar"></i> RAG Analytics Dashboard</h1>
+            <p>Monitor and analyze your Retrieval-Augmented Generation system</p>
+            <div style="margin-top: 1rem;">
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-comments"></i> Back to Chat
+                </a>
+                <button id="refreshBtn" class="btn btn-secondary">
+                    <i class="fas fa-sync"></i> Refresh Data
+                </button>
+            </div>
+        </header>
+
+        <nav class="dashboard-nav">
+            <button class="nav-btn active" data-tab="overview">
+                <i class="fas fa-tachometer-alt"></i> Overview
+            </button>
+            <button class="nav-btn" data-tab="testing">
+                <i class="fas fa-flask"></i> Strategy Testing
+            </button>
+            <button class="nav-btn" data-tab="knowledge">
+                <i class="fas fa-database"></i> Knowledge Base
+            </button>
+            <button class="nav-btn" data-tab="performance">
+                <i class="fas fa-chart-line"></i> Performance
+            </button>
+        </nav>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-server"></i>
+                        System Health
+                    </div>
+                    <div class="card-content">
+                        <div class="metric">
+                            <span>Status</span>
+                            <span class="metric-value" id="systemStatus">
+                                <span class="status-indicator status-healthy"></span>
+                                Loading...
+                            </span>
+                        </div>
+                        <div class="metric">
+                            <span>Uptime</span>
+                            <span class="metric-value" id="uptime">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Memory Usage</span>
+                            <span class="metric-value" id="memoryUsage">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Last Scrape</span>
+                            <span class="metric-value" id="lastScrape">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-database"></i>
+                        Knowledge Base Stats
+                    </div>
+                    <div class="card-content">
+                        <div class="metric">
+                            <span>Total Chunks</span>
+                            <span class="metric-value" id="totalChunks">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Total Sources</span>
+                            <span class="metric-value" id="totalSources">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Avg Chunk Length</span>
+                            <span class="metric-value" id="avgChunkLength">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Embedding Cache</span>
+                            <span class="metric-value" id="embeddingCache">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-comments"></i>
+                        Chat Statistics
+                    </div>
+                    <div class="card-content">
+                        <div class="metric">
+                            <span>Active Conversations</span>
+                            <span class="metric-value" id="conversations">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Total Messages</span>
+                            <span class="metric-value" id="totalMessages">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Model</span>
+                            <span class="metric-value" id="chatModel">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Max History</span>
+                            <span class="metric-value" id="maxHistory">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-cogs"></i>
+                        RAG Configuration
+                    </div>
+                    <div class="card-content">
+                        <div class="metric">
+                            <span>Chunk Size</span>
+                            <span class="metric-value" id="chunkSize">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Chunk Overlap</span>
+                            <span class="metric-value" id="chunkOverlap">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Max Chunks/Query</span>
+                            <span class="metric-value" id="maxChunks">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Similarity Threshold</span>
+                            <span class="metric-value" id="similarityThreshold">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Strategy Testing Tab -->
+        <div id="testing" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-flask"></i>
+                    Search Strategy Comparison
+                </div>
+                <div class="card-content">
+                    <div class="strategy-test">
+                        <div class="test-controls">
+                            <input type="text" id="testQuery" class="test-input"
+                                   placeholder="Enter a test query..."
+                                   value="What is artificial intelligence?">
+                            <button id="runTestBtn" class="btn btn-primary">
+                                <i class="fas fa-play"></i> Run Test
+                            </button>
+                        </div>
+                        <div id="testResults" class="test-results">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Knowledge Base Tab -->
+        <div id="knowledge" class="tab-content" style="display: none;">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-spider"></i>
+                        Web Scraper
+                    </div>
+                    <div class="card-content">
+                        <div class="metric">
+                            <span>Scrape Delay</span>
+                            <span class="metric-value" id="scrapeDelay">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Max Content Length</span>
+                            <span class="metric-value" id="maxContentLength">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Min Content Length</span>
+                            <span class="metric-value" id="minContentLength">--</span>
+                        </div>
+                        <div class="metric">
+                            <span>Timeout</span>
+                            <span class="metric-value" id="timeout">--</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <button id="triggerScrapeBtn" class="btn btn-primary">
+                            <i class="fas fa-sync"></i> Trigger Scrape
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-plus"></i>
+                        Add New Source
+                    </div>
+                    <div class="card-content">
+                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                            <input type="url" id="newUrl" class="test-input"
+                                   placeholder="https://example.com"
+                                   style="flex: 1; min-width: 200px;">
+                            <button id="addUrlBtn" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add URL
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-terminal"></i>
+                    System Logs
+                </div>
+                <div class="card-content">
+                    <div id="logsContainer" class="logs-container">
+                        <div class="log-entry">
+                            <span class="log-timestamp">[Loading...]</span>
+                            Initializing log viewer...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Tab -->
+        <div id="performance" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line"></i>
+                    Performance Metrics
+                </div>
+                <div class="card-content">
+                    <p>Performance monitoring features coming soon...</p>
+                    <ul>
+                        <li>Response time tracking</li>
+                        <li>Search strategy efficiency</li>
+                        <li>Token usage analytics</li>
+                        <li>Memory optimization insights</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        class RAGDashboard {
+            constructor() {
+                this.currentTab = 'overview';
+                this.refreshInterval = null;
+                this.logs = [];
+
+                this.initializeElements();
+                this.attachEventListeners();
+                this.loadDashboardData();
+                this.startAutoRefresh();
+            }
+
+            initializeElements() {
+                this.elements = {
+                    refreshBtn: document.getElementById('refreshBtn'),
+                    testQuery: document.getElementById('testQuery'),
+                    runTestBtn: document.getElementById('runTestBtn'),
+                    testResults: document.getElementById('testResults'),
+                    triggerScrapeBtn: document.getElementById('triggerScrapeBtn'),
+                    addUrlBtn: document.getElementById('addUrlBtn'),
+                    newUrl: document.getElementById('newUrl'),
+                    logsContainer: document.getElementById('logsContainer'),
+                    toast: document.getElementById('toast')
+                };
+            }
+
+            attachEventListeners() {
+                // Tab navigation
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const tab = e.target.dataset.tab;
+                        this.switchTab(tab);
+                    });
+                });
+
+                // Refresh button
+                this.elements.refreshBtn.addEventListener('click', () => {
+                    this.loadDashboardData();
+                });
+
+                // Strategy testing
+                this.elements.runTestBtn.addEventListener('click', () => {
+                    this.runStrategyTest();
+                });
+
+                // Scraping
+                this.elements.triggerScrapeBtn.addEventListener('click', () => {
+                    this.triggerScrape();
+                });
+
+                // Add URL
+                this.elements.addUrlBtn.addEventListener('click', () => {
+                    this.addNewUrl();
+                });
+
+                // Enter key shortcuts
+                this.elements.testQuery.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        this.runStrategyTest();
+                    }
+                });
+
+                this.elements.newUrl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        this.addNewUrl();
+                    }
+                });
+            }
+
+            switchTab(tabName) {
+                // Update nav buttons
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+                // Update tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                document.getElementById(tabName).style.display = 'block';
+
+                this.currentTab = tabName;
+            }
+
+            async loadDashboardData() {
+                try {
+                    const [healthData, statsData] = await Promise.all([
+                        fetch('/api/health').then(r => r.json()),
+                        fetch('/api/stats').then(r => r.json())
+                    ]);
+
+                    this.updateOverviewData(healthData, statsData);
+                    this.updateKnowledgeData(healthData, statsData);
+                    this.addLog('Dashboard data refreshed successfully');
+
+                } catch (error) {
+                    console.error('Failed to load dashboard data:', error);
+                    this.showToast('Failed to load dashboard data', 'error');
+                    this.addLog(`Error loading data: ${error.message}`, 'error');
+                }
+            }
+
+            updateOverviewData(health, stats) {
+                // System health
+                const status = health.status === 'healthy' ? 'Healthy' : 'Unhealthy';
+                const statusClass = health.status === 'healthy' ? 'status-healthy' : 'status-error';
+
+                document.getElementById('systemStatus').innerHTML =
+                    `<span class="status-indicator ${statusClass}"></span>${status}`;
+
+                document.getElementById('uptime').textContent =
+                    this.formatUptime(health.server.uptime);
+
+                document.getElementById('memoryUsage').textContent =
+                    this.formatMemory(health.server.memory.heapUsed);
+
+                document.getElementById('lastScrape').textContent =
+                    health.lastScrapeTime ? new Date(health.lastScrapeTime).toLocaleString() : 'Never';
+
+                // Knowledge base stats
+                document.getElementById('totalChunks').textContent = stats.stats.rag.totalChunks;
+                document.getElementById('totalSources').textContent = stats.stats.rag.totalSources;
+                document.getElementById('avgChunkLength').textContent = stats.stats.rag.avgChunkLength;
+                document.getElementById('embeddingCache').textContent = stats.stats.rag.embeddingStats.cacheSize;
+
+                // Chat stats
+                document.getElementById('conversations').textContent = stats.stats.chat.conversations;
+                document.getElementById('totalMessages').textContent = stats.stats.chat.totalMessages;
+                document.getElementById('chatModel').textContent = stats.stats.chat.model;
+                document.getElementById('maxHistory').textContent = stats.stats.chat.maxHistoryLength;
+
+                // RAG config
+                document.getElementById('chunkSize').textContent = stats.stats.rag.chunkSize;
+                document.getElementById('chunkOverlap').textContent = stats.stats.rag.chunkOverlap;
+                document.getElementById('maxChunks').textContent = stats.stats.rag.maxChunksPerQuery;
+                document.getElementById('similarityThreshold').textContent = stats.stats.rag.similarityThreshold;
+            }
+
+            updateKnowledgeData(health, stats) {
+                // Scraper stats
+                document.getElementById('scrapeDelay').textContent = `${stats.stats.scraper.delay}ms`;
+                document.getElementById('maxContentLength').textContent = stats.stats.scraper.maxContentLength;
+                document.getElementById('minContentLength').textContent = stats.stats.scraper.minContentLength;
+                document.getElementById('timeout').textContent = `${stats.stats.scraper.timeout}ms`;
+            }
+
+            async runStrategyTest() {
+                const query = this.elements.testQuery.value.trim();
+                if (!query) {
+                    this.showToast('Please enter a test query', 'warning');
+                    return;
+                }
+
+                this.elements.runTestBtn.disabled = true;
+                this.elements.runTestBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+
+                try {
+                    const response = await fetch('/api/test-search', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.displayTestResults(data.results);
+                        this.addLog(`Strategy test completed for query: "${query}"`);
+                    } else {
+                        throw new Error(data.message || 'Test failed');
+                    }
+
+                } catch (error) {
+                    console.error('Strategy test failed:', error);
+                    this.showToast('Strategy test failed', 'error');
+                    this.addLog(`Strategy test failed: ${error.message}`, 'error');
+                } finally {
+                    this.elements.runTestBtn.disabled = false;
+                    this.elements.runTestBtn.innerHTML = '<i class="fas fa-play"></i> Run Test';
+                }
+            }
+
+            displayTestResults(results) {
+                const container = this.elements.testResults;
+                container.innerHTML = '';
+
+                Object.entries(results).forEach(([strategy, result]) => {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'result-item';
+
+                    if (result.error) {
+                        resultDiv.innerHTML = `
+                            <div class="result-header">
+                                <span class="strategy-name">${strategy}</span>
+                                <span class="response-time" style="color: var(--error-color);">Error</span>
+                            </div>
+                            <div class="response-preview" style="color: var(--error-color);">
+                                ${result.error}
+                            </div>
+                        `;
+                    } else {
+                        const preview = result.response.substring(0, 200) +
+                                      (result.response.length > 200 ? '...' : '');
+
+                        resultDiv.innerHTML = `
+                            <div class="result-header">
+                                <span class="strategy-name">${strategy}</span>
+                                <span class="response-time">${result.responseTime}ms</span>
+                            </div>
+                            <div class="response-preview">${preview}</div>
+                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                                Sources: ${result.sources.length} | Chunks: ${result.retrievedChunks}
+                            </div>
+                        `;
+                    }
+
+                    container.appendChild(resultDiv);
+                });
+            }
+
+            async triggerScrape() {
+                this.elements.triggerScrapeBtn.disabled = true;
+                this.elements.triggerScrapeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scraping...';
+
+                try {
+                    const response = await fetch('/api/scrape', { method: 'POST' });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.showToast('Scraping completed successfully', 'success');
+                        this.addLog(`Scraping completed: ${data.stats.documentsScraped} documents, ${data.stats.totalChunks} chunks`);
+                        this.loadDashboardData(); // Refresh data
+                    } else {
+                        throw new Error(data.message || 'Scraping failed');
+                    }
+
+                } catch (error) {
+                    console.error('Scraping failed:', error);
+                    this.showToast('Scraping failed', 'error');
+                    this.addLog(`Scraping failed: ${error.message}`, 'error');
+                } finally {
+                    this.elements.triggerScrapeBtn.disabled = false;
+                    this.elements.triggerScrapeBtn.innerHTML = '<i class="fas fa-sync"></i> Trigger Scrape';
+                }
+            }
+
+            async addNewUrl() {
+                const url = this.elements.newUrl.value.trim();
+                if (!url) {
+                    this.showToast('Please enter a valid URL', 'warning');
+                    return;
+                }
+
+                this.elements.addUrlBtn.disabled = true;
+                this.elements.addUrlBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+                try {
+                    const response = await fetch('/api/add-url', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.showToast('URL added successfully', 'success');
+                        this.addLog(`Added URL: ${url} (${data.stats.chunksAdded} chunks)`);
+                        this.elements.newUrl.value = '';
+                        this.loadDashboardData(); // Refresh data
+                    } else {
+                        throw new Error(data.message || 'Failed to add URL');
+                    }
+
+                } catch (error) {
+                    console.error('Add URL failed:', error);
+                    this.showToast('Failed to add URL', 'error');
+                    this.addLog(`Failed to add URL ${url}: ${error.message}`, 'error');
+                } finally {
+                    this.elements.addUrlBtn.disabled = false;
+                    this.elements.addUrlBtn.innerHTML = '<i class="fas fa-plus"></i> Add URL';
+                }
+            }
+
+            addLog(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = {
+                    timestamp,
+                    message,
+                    type
+                };
+
+                this.logs.unshift(logEntry);
+                if (this.logs.length > 100) {
+                    this.logs = this.logs.slice(0, 100);
+                }
+
+                this.updateLogsDisplay();
+            }
+
+            updateLogsDisplay() {
+                const container = this.elements.logsContainer;
+                container.innerHTML = this.logs.map(log => {
+                    const color = log.type === 'error' ? '#ff6b6b' :
+                                 log.type === 'warning' ? '#ffa500' : '#00ff00';
+
+                    return `<div class="log-entry">
+                        <span class="log-timestamp">[${log.timestamp}]</span>
+                        <span style="color: ${color};">${log.message}</span>
+                    </div>`;
+                }).join('');
+
+                container.scrollTop = 0;
+            }
+
+            startAutoRefresh() {
+                this.refreshInterval = setInterval(() => {
+                    this.loadDashboardData();
+                }, 30000); // Refresh every 30 seconds
+            }
+
+            stopAutoRefresh() {
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                    this.refreshInterval = null;
+                }
+            }
+
+            formatUptime(seconds) {
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                return `${hours}h ${minutes}m`;
+            }
+
+            formatMemory(bytes) {
+                const mb = bytes / (1024 * 1024);
+                return `${mb.toFixed(1)} MB`;
+            }
+
+            showToast(message, type = 'info') {
+                this.elements.toast.textContent = message;
+                this.elements.toast.className = `toast ${type}`;
+                this.elements.toast.classList.add('show');
+
+                setTimeout(() => {
+                    this.elements.toast.classList.remove('show');
+                }, 4000);
+            }
+        }
+
+        // Initialize dashboard when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const dashboard = new RAGDashboard();
+            window.dashboard = dashboard; // For debugging
+
+            console.log('RAG Dashboard initialized successfully');
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (window.dashboard) {
+                window.dashboard.stopAutoRefresh();
+            }
+        });
+    </script>
+</body>
+</html>
