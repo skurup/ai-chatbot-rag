@@ -1,0 +1,48 @@
+{
+  "id": "test_1759376879865",
+  "messages": [
+    {
+      "id": "msg_1759376881601_3sj5louu1",
+      "type": "user",
+      "content": "What is artificial intelligence?",
+      "timestamp": "2025-10-02T03:48:01.601Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759376881601_gor9owo0b",
+      "type": "bot",
+      "content": "The context provided does not explicitly define artificial intelligence (AI). In general, artificial intelligence refers to the simulation of human intelligence processes by machines, especially computer systems. These processes include learning, reasoning, problem-solving, perception, and language understanding. AI can be categorized into narrow AI, which is designed for a specific task, and general AI, which aims to mimic human cognitive abilities across a wide range of tasks. For more detailed information on AI concepts and applications, you can refer to various resources such as academic papers, textbooks on artificial intelligence, or online platforms like Databricks for practical AI tutorials.",
+      "timestamp": "2025-10-02T03:48:01.601Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.databricks.com/aws/en/getting-started/",
+            "title": "Get started tutorials on Databricks | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.snowflake.com/sql-reference/functions-all",
+            "title": "All functions (alphabetical) | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.databricks.com/aws/en/machine-learning/ai-ml-tutorials",
+            "title": "AI and machine learning tutorials | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2025-10-02T03:48:01.600Z",
+    "lastUpdated": "2025-10-02T12:29:51.316Z",
+    "messageCount": 2,
+    "title": "What is artificial intelligence"
+  }
+}

@@ -349,7 +349,7 @@ class ChatInterface {
         avatar.className = 'message-avatar';
         avatar.innerHTML = sender === 'user'
             ? '<i class="fas fa-user"></i>'
-            : '<i class="fas fa-robot"></i>';
+            : '<i class="fas fa-lightbulb"></i>';
 
         const messageContent = document.createElement('div');
         messageContent.className = 'message-content';

@@ -1,0 +1,48 @@
+{
+  "id": "test_1759376878954",
+  "messages": [
+    {
+      "id": "msg_1759376879853_lhhv9urqr",
+      "type": "user",
+      "content": "What is artificial intelligence?",
+      "timestamp": "2025-10-02T03:47:59.853Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759376879853_qg8qwh09n",
+      "type": "bot",
+      "content": "The provided context does not directly define artificial intelligence (AI). However, in general terms, artificial intelligence refers to the simulation of human intelligence processes by machines, especially computer systems. These processes include learning, reasoning, problem-solving, perception, and language understanding. AI technologies aim to mimic cognitive functions typically associated with humans, such as learning from experience and adapting to new information. For more detailed information on AI concepts and applications, you can refer to reliable sources such as academic publications or introductory AI courses.",
+      "timestamp": "2025-10-02T03:47:59.853Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.databricks.com/aws/en/getting-started/",
+            "title": "Get started tutorials on Databricks | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.snowflake.com/sql-reference/functions-all",
+            "title": "All functions (alphabetical) | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.databricks.com/aws/en/machine-learning/ai-ml-tutorials",
+            "title": "AI and machine learning tutorials | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2025-10-02T03:47:59.852Z",
+    "lastUpdated": "2025-10-02T12:29:51.307Z",
+    "messageCount": 2,
+    "title": "What is artificial intelligence"
+  }
+}

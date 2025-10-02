@@ -1,0 +1,48 @@
+{
+  "id": "test_1759376881616",
+  "messages": [
+    {
+      "id": "msg_1759376883792_igq3o2zly",
+      "type": "user",
+      "content": "What is artificial intelligence?",
+      "timestamp": "2025-10-02T03:48:03.790Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759376883792_a0em99tep",
+      "type": "bot",
+      "content": "The context provided does not directly define artificial intelligence (AI). However, AI can be generally defined as the simulation of human intelligence processes by machines, especially computer systems. These processes include learning (the acquisition of information and rules for using the information), reasoning (using rules to reach approximate or definite conclusions), and self-correction. AI encompasses various technologies like machine learning, natural language processing, and computer vision to perform tasks that typically require human intelligence. For more detailed information on AI concepts and technologies, you can refer to reputable sources like academic publications, AI textbooks, or online resources dedicated to AI education and research.",
+      "timestamp": "2025-10-02T03:48:03.790Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.databricks.com/aws/en/getting-started/",
+            "title": "Get started tutorials on Databricks | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.snowflake.com/sql-reference/functions-all",
+            "title": "All functions (alphabetical) | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.databricks.com/aws/en/machine-learning/ai-ml-tutorials",
+            "title": "AI and machine learning tutorials | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2025-10-02T03:48:03.789Z",
+    "lastUpdated": "2025-10-02T12:29:51.325Z",
+    "messageCount": 2,
+    "title": "What is artificial intelligence"
+  }
+}

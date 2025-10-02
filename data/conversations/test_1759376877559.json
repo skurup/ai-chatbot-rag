@@ -1,0 +1,48 @@
+{
+  "id": "test_1759376877559",
+  "messages": [
+    {
+      "id": "msg_1759376878934_z543rgsbv",
+      "type": "user",
+      "content": "What is artificial intelligence?",
+      "timestamp": "2025-10-02T03:47:58.934Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759376878934_sjbuhqn8l",
+      "type": "bot",
+      "content": "The context provided does not directly define artificial intelligence (AI). However, in general terms, artificial intelligence refers to the simulation of human intelligence processes by machines, especially computer systems. These processes include learning, reasoning, problem-solving, perception, and language understanding. AI is used in various applications such as speech recognition, natural language processing, image recognition, and decision-making. For more detailed information on AI, you may refer to reliable sources like academic publications or reputable websites on AI and machine learning.",
+      "timestamp": "2025-10-02T03:47:58.934Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.databricks.com/aws/en/getting-started/",
+            "title": "Get started tutorials on Databricks | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.snowflake.com/sql-reference/functions-all",
+            "title": "All functions (alphabetical) | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.databricks.com/aws/en/machine-learning/ai-ml-tutorials",
+            "title": "AI and machine learning tutorials | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2025-10-02T03:47:58.932Z",
+    "lastUpdated": "2025-10-02T12:29:51.298Z",
+    "messageCount": 2,
+    "title": "What is artificial intelligence"
+  }
+}

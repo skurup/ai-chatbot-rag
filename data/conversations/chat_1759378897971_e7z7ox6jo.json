@@ -1,0 +1,42 @@
+{
+  "id": "chat_1759378897971_e7z7ox6jo",
+  "messages": [
+    {
+      "id": "msg_1759407905773_kx752q5qm",
+      "type": "user",
+      "content": "What is Unity catalog",
+      "timestamp": "2025-10-02T12:25:05.773Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759407905773_kuk98b2jo",
+      "type": "bot",
+      "content": "Unity Catalog is a centralized data catalog provided by Databricks that offers features such as access control, auditing, lineage tracking, quality monitoring, and data discovery capabilities across Databricks workspaces. It allows for defining data access policies in a single place that apply across all workspaces in a region, provides a standards-compliant security model based on ANSI SQL for managing permissions, and automatically captures audit logs and lineage data to track data asset creation and usage across different languages [Source: What is Unity Catalog? | Databricks on AWS].",
+      "timestamp": "2025-10-02T12:25:05.773Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.databricks.com/aws/en/data-governance/unity-catalog/",
+            "title": "What is Unity Catalog? | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.databricks.com/aws/en/data-governance/unity-catalog/get-started",
+            "title": "Get started with Unity Catalog | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2025-10-02T12:25:05.772Z",
+    "lastUpdated": "2025-10-02T12:29:51.333Z",
+    "messageCount": 2,
+    "title": "What is Unity catalog"
+  }
+}
