@@ -60,7 +60,8 @@ cp .env.example .env
 export const URLS_TO_SCRAPE = [
   'https://docs.atlan.com',
   'https://docs.snowflake.com',
-  'https://docs.databricks.com'
+  'https://docs.databricks.com',
+  'https://docs.cloudera.com'
 ];
 ```
 
