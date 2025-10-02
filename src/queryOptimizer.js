@@ -8,7 +8,7 @@ class QueryOptimizer {
       'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'this', 'that', 'these',
       'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them'
     ]);
-    
+
     this.queryTypes = {
       DEFINITION: 'definition',
       HOW_TO: 'how_to',
@@ -17,24 +17,51 @@ class QueryOptimizer {
       EXAMPLE: 'example',
       GENERAL: 'general'
     };
+
+    // Technical domain synonyms and related terms
+    this.synonymMap = {
+      'connect': ['integration', 'setup', 'configure', 'link', 'establish'],
+      'setup': ['configure', 'install', 'initialize', 'prepare', 'establish'],
+      'configure': ['setup', 'customize', 'adjust', 'modify', 'tune'],
+      'database': ['db', 'datastore', 'data warehouse', 'repository'],
+      'api': ['interface', 'endpoint', 'service', 'integration'],
+      'authentication': ['auth', 'login', 'credentials', 'access'],
+      'security': ['protection', 'access control', 'permissions', 'safety'],
+      'performance': ['speed', 'optimization', 'efficiency', 'throughput'],
+      'error': ['issue', 'problem', 'bug', 'exception', 'failure'],
+      'troubleshoot': ['debug', 'diagnose', 'fix', 'resolve', 'solve'],
+      'data': ['information', 'dataset', 'records', 'content'],
+      'query': ['search', 'lookup', 'find', 'retrieve'],
+      'dashboard': ['interface', 'panel', 'view', 'console'],
+      'monitoring': ['tracking', 'observability', 'metrics', 'analytics'],
+      'deployment': ['release', 'publish', 'launch', 'rollout'],
+      'migration': ['transfer', 'move', 'upgrade', 'transition'],
+      'backup': ['snapshot', 'copy', 'archive', 'restore'],
+      'sync': ['synchronize', 'update', 'refresh', 'align'],
+      'workflow': ['process', 'pipeline', 'automation', 'sequence']
+    };
   }
 
   preprocessQuery(query) {
     try {
       const originalQuery = query.trim();
-      
+
       // Extract key information
       const analysis = this.analyzeQuery(originalQuery);
-      
+
       // Optimize query based on type
       const optimizedQuery = this.optimizeQuery(originalQuery, analysis);
-      
+
+      // Expand query with synonyms and related terms
+      const expandedQuery = this.expandQuery(optimizedQuery, analysis);
+
       // Generate search strategies
       const strategies = this.generateSearchStrategies(analysis);
-      
+
       logger.info('Query preprocessing completed', {
         original: originalQuery,
         optimized: optimizedQuery,
+        expanded: expandedQuery,
         type: analysis.type,
         keywords: analysis.keywords,
         strategies: strategies
@@ -42,7 +69,7 @@ class QueryOptimizer {
 
       return {
         original: originalQuery,
-        optimized: optimizedQuery,
+        optimized: expandedQuery, // Use expanded query as the optimized version
         analysis,
         strategies
       };
@@ -325,7 +352,7 @@ class QueryOptimizer {
     // Find common terms between query and context
     const queryWords = this.extractWords(query);
     const contextWords = this.extractWords(recentContext);
-    const commonTerms = queryWords.filter(word => 
+    const commonTerms = queryWords.filter(word =>
       contextWords.includes(word) && !this.stopWords.has(word)
     );
 
@@ -334,6 +361,45 @@ class QueryOptimizer {
     }
 
     return query;
+  }
+
+  expandQuery(query, analysis) {
+    try {
+      const words = this.extractWords(query);
+      const expandedTerms = new Set();
+
+      // Add original query words
+      words.forEach(word => {
+        if (!this.stopWords.has(word)) {
+          expandedTerms.add(word);
+        }
+      });
+
+      // Add synonyms for key terms (limit to 2 synonyms per term to avoid query bloat)
+      words.forEach(word => {
+        const lowerWord = word.toLowerCase();
+        if (this.synonymMap[lowerWord]) {
+          const synonyms = this.synonymMap[lowerWord].slice(0, 2);
+          synonyms.forEach(synonym => expandedTerms.add(synonym));
+        }
+      });
+
+      // Convert back to query string
+      const expandedQuery = Array.from(expandedTerms).join(' ');
+
+      logger.info('Query expansion completed', {
+        original: query,
+        expanded: expandedQuery,
+        originalTerms: words.length,
+        expandedTerms: expandedTerms.size
+      });
+
+      return expandedQuery;
+
+    } catch (error) {
+      logger.error('Query expansion failed', { error: error.message, query });
+      return query;
+    }
   }
 }
 

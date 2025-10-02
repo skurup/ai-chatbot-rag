@@ -1,0 +1,52 @@
+{
+  "id": "test-rating-final",
+  "messages": [
+    {
+      "id": "msg_1759211426462_d9vatp28j",
+      "type": "user",
+      "content": "Hello test",
+      "timestamp": "2025-09-30T05:50:26.462Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759211426462_v64tupp8v",
+      "type": "bot",
+      "content": "Hello! How can I assist you today?",
+      "timestamp": "2025-09-30T05:50:26.462Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.databricks.com/aws/en/getting-started/express-setup",
+            "title": "Sign up for Databricks with express setup | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.atlan.com/product/capabilities/insights/how-tos/query-data",
+            "title": "query data | Atlan Documentation",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.databricks.com/aws/en/getting-started/quick-start",
+            "title": "Tutorial: Query and visualize data from a notebook | Databricks on AWS",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": {
+          "score": -1,
+          "feedback": "Could be better",
+          "timestamp": "2025-09-30T05:52:12.731Z"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2025-09-30T05:50:26.462Z",
+    "lastUpdated": "2025-10-02T02:41:37.283Z",
+    "messageCount": 2,
+    "title": "Hello test"
+  }
+}

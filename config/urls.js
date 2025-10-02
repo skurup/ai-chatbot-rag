@@ -4,7 +4,9 @@
 export const URLS_TO_SCRAPE = [
   // Example URLs - replace with your actual target sites
   'https://docs.atlan.com/',
-  'https://docs.snowflake.com/index',
+  'https://docs.snowflake.com/',
+  'https://docs.snowflake.com/en/user-guide/',
+  'https://docs.snowflake.com/en/sql-reference/',
 
   // Add more URLs as needed
   // 'https://your-docs-site.com/api-reference',
@@ -46,6 +48,11 @@ export const DOMAIN_LIMITS = {
   'docs.openai.com': {
     delay: 2000, // 2 seconds between requests
     maxPages: 50
+  },
+
+  'docs.snowflake.com': {
+    delay: 1500, // 1.5 seconds between requests
+    maxPages: 100 // Allow more pages for Snowflake
   },
 
   // Default limits for all other domains

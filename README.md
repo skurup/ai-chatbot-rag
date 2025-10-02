@@ -4,11 +4,12 @@ A production-ready conversational AI chatbot built with **Retrieval-Augmented Ge
 
 ## ✨ **Latest Enhancements**
 
+- 🚀 **Advanced RAG Accuracy Improvements** - Query expansion, result diversity, metadata boosting, and BM25 hybrid ranking
 - 🗄️ **Qdrant Vector Database Integration** - High-performance vector storage and retrieval
 - 📊 **Enhanced Citation System** - Rich citations with confidence scoring and keyword highlighting
 - 🎯 **Advanced Source Filtering** - Filter by brand/domain (Atlan, Snowflake, Databricks)
 - 🔄 **Recursive Web Scraping** - Intelligent link following with depth control and URL tracking
-- 📁 **File Upload Support** - Process TXT, DOCX, and DOC documents
+- 📁 **File Upload Support** - Process TXT, DOCX, DOC, PDF, and RTF documents
 - 📤 **Conversation Export** - Export chat history in JSON, TXT, CSV, and Markdown formats
 - 🔍 **Multi-Strategy Search** - Semantic, keyword, hybrid, and contextual search with intelligent fallbacks
 - 📈 **Comprehensive Analytics** - Real-time monitoring, health checks, and performance metrics
@@ -66,6 +67,9 @@ export const URLS_TO_SCRAPE = [
 
 5. **Start the application:**
 ```bash
+# Using startup script (recommended - includes log management)
+./startup.sh start
+
 # Development mode with auto-restart
 npm run dev
 
@@ -140,11 +144,21 @@ npm start
 - **Vector Database:** High-performance Qdrant integration with fallback
 - **Intelligent Fallbacks:** Automatic strategy switching for optimal results
 
+### 🎯 **RAG Accuracy Improvements**
+
+- **Query Expansion:** Automatic synonym expansion with 19 domain-specific synonym groups (connect→integration/setup/configure)
+- **Result Diversity:** Smart deduplication with source diversity (max 2 per domain), URL path filtering, and text similarity detection
+- **Metadata Boosting:** Advanced relevance scoring based on source authority (1.2x official docs), content type (1.15x tutorials), query-specific boosts, recency weighting, and structural position
+- **BM25 Hybrid Ranking:** Combines semantic similarity (70%) with BM25 keyword matching (30%) for balanced accuracy
+- **Enhanced Configuration:** Optimized chunk size (750), overlap (100), similarity threshold (0.6), and result count (7) for better performance
+
 ## 📁 Project Structure
 
 ```
 ai-chatbot-rag/
 ├── server.js              # Main Express server with RAG integration
+├── startup.sh             # Production startup script with log management
+├── log-manager.sh         # Independent log rotation and cleanup daemon
 ├── package.json           # Dependencies and scripts
 ├── .env.example           # Environment configuration template
 ├── .gitignore            # Git ignore rules
@@ -396,11 +410,11 @@ MAX_SCRAPE_DEPTH=3
 MAX_SCRAPE_PAGES=100
 FOLLOW_SAME_DOMAIN=true
 
-# RAG Configuration
-CHUNK_SIZE=500
-CHUNK_OVERLAP=50
-MAX_CHUNKS_PER_QUERY=5
-SIMILARITY_THRESHOLD=0.7
+# RAG Configuration (Optimized for Accuracy)
+CHUNK_SIZE=750
+CHUNK_OVERLAP=100
+MAX_CHUNKS_PER_QUERY=7
+SIMILARITY_THRESHOLD=0.6
 
 # Rate Limiting
 RATE_LIMIT_WINDOW_MS=900000
@@ -546,6 +560,63 @@ npm run dev
 
 ## 🚀 Deployment
 
+### Production Startup Scripts
+
+The project includes comprehensive startup scripts for production deployment:
+
+#### `startup.sh` - Main System Controller
+
+```bash
+# Start complete system (log manager, Qdrant, application)
+./startup.sh start
+
+# Stop services (preserves log manager option)
+./startup.sh stop
+
+# Restart entire system
+./startup.sh restart
+
+# Check system status
+./startup.sh status
+
+# View logs
+./startup.sh logs app      # Application logs
+./startup.sh logs qdrant   # Qdrant logs
+./startup.sh logs manager  # Log manager logs
+```
+
+**Features:**
+- ✅ **Automated startup order**: Log Manager → Qdrant → Application
+- ✅ **Proper shutdown order**: Application → Qdrant → Log Manager (optional)
+- ✅ **Conflict detection**: Prevents duplicate services on same ports
+- ✅ **Health verification**: Checks both port binding and HTTP health
+- ✅ **Docker integration**: Manages Qdrant containers with persistent storage
+- ✅ **Process management**: PID files and graceful shutdowns
+
+#### `log-manager.sh` - Log Management Daemon
+
+```bash
+# Start log management daemon
+./log-manager.sh start
+
+# Stop daemon
+./log-manager.sh stop
+
+# Check daemon status
+./log-manager.sh status
+
+# Manual log rotation
+./log-manager.sh rotate
+```
+
+**Features:**
+- ✅ **Independent operation**: Runs separately from main application
+- ✅ **Automatic rotation**: Every 3 hours with microsecond timestamps
+- ✅ **Compression**: Rotated logs are gzipped to save space
+- ✅ **Retention policy**: 24-hour automatic cleanup
+- ✅ **Conflict prevention**: Lock files prevent simultaneous operations
+- ✅ **Zero downtime**: Copy-then-truncate prevents service interruption
+
 ### Local Development
 
 ```bash
@@ -555,10 +626,11 @@ npm run dev
 ### Production
 
 ```bash
-# Set production environment
-export NODE_ENV=production
+# Using startup script (recommended)
+./startup.sh start
 
-# Start server
+# Or manual mode
+export NODE_ENV=production
 npm start
 ```
 
@@ -803,11 +875,12 @@ curl -X POST http://localhost:3000/api/test-search \
 
 ### ✅ Completed Features
 
+- [x] **Advanced RAG Accuracy Improvements** - Query expansion, result diversity, metadata boosting, BM25 hybrid ranking
 - [x] **Qdrant Vector Database Integration** - High-performance vector storage
 - [x] **Enhanced Citation System** - Rich citations with confidence scoring
 - [x] **Source Filtering** - Brand/domain-based filtering (Atlan, Snowflake, Databricks)
 - [x] **Recursive Web Scraping** - Intelligent link following with URL tracking
-- [x] **File Upload Support** - TXT, DOCX, DOC document processing
+- [x] **File Upload Support** - TXT, DOCX, DOC, PDF, RTF document processing
 - [x] **Conversation Export** - Multiple export formats (JSON, TXT, CSV, Markdown)
 - [x] **Multi-Strategy Search** - Semantic, keyword, hybrid, contextual with fallbacks
 - [x] **Comprehensive Logging** - Structured logging with Winston

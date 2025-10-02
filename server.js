@@ -6,13 +6,11 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import multer from 'multer';
 import { body, validationResult } from 'express-validator';
 
 import WebScraper from './src/scraper.js';
 import RAGEngine from './src/rag.js';
 import ChatService from './src/chat.js';
-import FileProcessor from './src/fileProcessor.js';
 import ConversationExport from './src/conversationExport.js';
 import logger from './src/logger.js';
 import { URLS_TO_SCRAPE } from './config/urls.js';
@@ -30,28 +28,11 @@ const PORT = process.env.PORT || 3000;
 const scraper = new WebScraper();
 const ragEngine = new RAGEngine();
 const chatService = new ChatService(ragEngine);
-const fileProcessor = new FileProcessor();
 
 // Inject RAG engine into scraper for content availability checking
 scraper.ragEngine = ragEngine;
 const conversationExport = new ConversationExport();
 
-// Configure multer for file uploads
-const upload = multer({
-  dest: 'uploads/',
-  limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10 * 1024 * 1024, // 10MB
-    files: 1
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = fileProcessor.getSupportedTypes();
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error(`Unsupported file type: ${file.mimetype}`), false);
-    }
-  }
-});
 
 // Global state
 let isInitialized = false;
@@ -856,65 +837,192 @@ app.delete('/api/conversation/:id', (req, res) => {
   }
 });
 
-// File upload endpoint
-app.post('/api/upload', upload.single('file'), async (req, res) => {
+// Rate response endpoint
+app.post('/api/conversation/:id/rate', [
+  body('messageId')
+    .isLength({ min: 1 })
+    .withMessage('Message ID is required'),
+  body('rating')
+    .isIn([1, -1])
+    .withMessage('Rating must be 1 (thumbs up) or -1 (thumbs down)'),
+  body('feedback')
+    .optional()
+    .isLength({ max: 500 })
+    .withMessage('Feedback must be less than 500 characters')
+], (req, res) => {
   try {
-    if (!req.file) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'No file uploaded',
-        code: 'NO_FILE'
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
       });
     }
 
-    logger.info('File upload started', {
-      filename: req.file.originalname,
-      size: req.file.size,
-      mimetype: req.file.mimetype
-    });
+    const { id } = req.params;
+    const { messageId, rating, feedback } = req.body;
 
-    const document = await fileProcessor.processFile(req.file);
-    const chunksAdded = await ragEngine.addDocument(document);
+    const success = chatService.rateResponse(id, messageId, rating, feedback);
 
-    // Cleanup uploaded file
-    fileProcessor.cleanup(req.file);
-
-    logger.info('File processed successfully', {
-      filename: req.file.originalname,
-      chunksAdded,
-      wordCount: document.wordCount
-    });
-
-    res.json({
-      success: true,
-      message: 'File uploaded and processed successfully',
-      stats: {
-        filename: req.file.originalname,
-        title: document.title,
-        chunksAdded,
-        wordCount: document.wordCount,
-        fileType: document.fileType,
-        fileSize: document.fileSize
-      }
-    });
-
-  } catch (error) {
-    logger.error('File upload failed', {
-      error: error.message,
-      filename: req.file?.originalname
-    });
-
-    // Cleanup file on error
-    if (req.file) {
-      fileProcessor.cleanup(req.file);
+    if (success) {
+      res.json({
+        success: true,
+        message: 'Response rated successfully'
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Message not found or invalid'
+      });
     }
 
+  } catch (error) {
+    console.error('Rate response error:', error.message);
     res.status(500).json({
       success: false,
-      error: 'File upload failed',
+      error: 'Failed to rate response',
       message: error.message
     });
   }
 });
+
+// Search conversations endpoint
+app.get('/api/conversations/search', [
+  body('query')
+    .optional()
+    .isLength({ min: 1, max: 200 })
+    .withMessage('Query must be between 1 and 200 characters')
+], (req, res) => {
+  try {
+    const { query, limit = 10 } = req.query;
+
+    if (!query || query.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Search query is required'
+      });
+    }
+
+    const results = chatService.searchConversations(query, parseInt(limit));
+
+    res.json({
+      success: true,
+      query,
+      results,
+      count: results.length
+    });
+
+  } catch (error) {
+    console.error('Search conversations error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to search conversations',
+      message: error.message
+    });
+  }
+});
+
+// Get conversation list endpoint
+app.get('/api/conversations', (req, res) => {
+  try {
+    const { limit = 20 } = req.query;
+    const conversations = chatService.getConversationList(parseInt(limit));
+
+    res.json({
+      success: true,
+      conversations,
+      count: conversations.length
+    });
+
+  } catch (error) {
+    console.error('Get conversations error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get conversations',
+      message: error.message
+    });
+  }
+});
+
+// Get specific conversation details
+app.get('/api/conversation/:id/details', (req, res) => {
+  try {
+    const { id } = req.params;
+    const conversation = chatService.getConversationById(id);
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        error: 'Conversation not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      conversation
+    });
+
+  } catch (error) {
+    console.error('Get conversation details error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get conversation details',
+      message: error.message
+    });
+  }
+});
+
+// Generate contextual suggestions
+app.get('/api/conversation/:id/suggestions', (req, res) => {
+  try {
+    const { id } = req.params;
+    const suggestions = chatService.generateContextualSuggestions(id);
+
+    res.json({
+      success: true,
+      suggestions,
+      conversationId: id
+    });
+
+  } catch (error) {
+    console.error('Generate suggestions error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate suggestions',
+      message: error.message
+    });
+  }
+});
+
+// Analyze conversation endpoint
+app.get('/api/conversation/:id/analysis', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const analysis = await chatService.analyzeConversation(id);
+
+    if (!analysis) {
+      return res.status(404).json({
+        success: false,
+        error: 'Conversation not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      analysis
+    });
+
+  } catch (error) {
+    console.error('Analyze conversation error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to analyze conversation',
+      message: error.message
+    });
+  }
+});
+
 
 // Export conversation endpoint
 app.get('/api/conversation/:id/export', (req, res) => {

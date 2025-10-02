@@ -337,26 +337,15 @@ class RAGEngine {
           }
         }));
 
-        // Apply keyword boosting for hybrid search
-        const queryTerms = query.toLowerCase().split(/\s+/);
+        // Apply enhanced BM25-style keyword boosting
         const boostedResults = formattedResults.map(result => {
-          let keywordBoost = 0;
-          const text = result.text.toLowerCase();
-          
-          // Boost for exact phrase matches
-          if (text.includes(query.toLowerCase())) {
-            keywordBoost += 0.2;
-          }
-          
-          // Boost for individual term matches
-          queryTerms.forEach(term => {
-            const termCount = (text.match(new RegExp(term, 'g')) || []).length;
-            keywordBoost += termCount * 0.05;
-          });
+          const bm25Score = this.calculateBM25Score(query, result.text);
+          const combinedScore = result.similarity * semanticWeight + bm25Score * keywordWeight;
 
           return {
             ...result,
-            similarity: result.similarity * semanticWeight + keywordBoost * keywordWeight
+            similarity: Math.min(combinedScore, 1.0), // Cap at 1.0
+            bm25Score: bm25Score // Track BM25 score separately
           };
         });
 
@@ -1252,7 +1241,7 @@ class RAGEngine {
       }
     }
 
-    logger.info('postProcessResults: Before applyQueryTypeRanking', {
+    logger.info('postProcessResults: Before diversity filtering', {
       resultsCount: results.length,
       sampleResult: results[0] ? {
         id: results[0].id,
@@ -1260,6 +1249,13 @@ class RAGEngine {
         textType: typeof results[0].text,
         textLength: results[0].text?.length || 0
       } : null
+    });
+
+    // Apply result diversity to prevent too many similar results
+    results = this.applyResultDiversity(results);
+
+    logger.info('postProcessResults: After diversity filtering', {
+      resultsCount: results.length
     });
 
     // Apply query-type specific ranking
@@ -1356,21 +1352,8 @@ class RAGEngine {
         boost *= (1 + keywordMatches * 0.1);
       }
       
-      // Boost content from authoritative sources (titles with specific patterns)
-      const title = result.metadata?.title?.toLowerCase() || '';
-      if (title.includes('official') || title.includes('documentation') || 
-          title.includes('guide') || title.includes('reference')) {
-        boost *= 1.1;
-      }
-      
-      // Boost recent content (if timestamp available)
-      if (result.metadata?.timestamp) {
-        const age = Date.now() - new Date(result.metadata.timestamp).getTime();
-        const daysOld = age / (1000 * 60 * 60 * 24);
-        if (daysOld < 30) {
-          boost *= 1.05; // Slight boost for recent content
-        }
-      }
+      // Enhanced metadata-based boosting
+      boost = this.applyMetadataBoosts(result, boost, queryAnalysis);
       
       return {
         ...result,
@@ -1378,6 +1361,243 @@ class RAGEngine {
         relevanceBoost: boost // Track the boost applied
       };
     }).sort((a, b) => b.similarity - a.similarity);
+  }
+
+  applyResultDiversity(results) {
+    if (results.length <= 3) return results; // Not enough results to diversify
+
+    const diversifiedResults = [];
+    const usedSources = new Set();
+    const usedUrlPaths = new Set();
+    const textSimilarityThreshold = 0.7; // Cosine similarity threshold for text
+    const maxPerSource = 2; // Maximum results per source
+
+    // Sort by similarity first
+    const sortedResults = [...results].sort((a, b) => b.similarity - a.similarity);
+
+    for (const result of sortedResults) {
+      let shouldInclude = true;
+
+      // Check source diversity
+      const sourceUrl = result.metadata?.source_url || result.metadata?.url || '';
+      const sourceDomain = this.extractDomain(sourceUrl);
+      const sourceCount = diversifiedResults.filter(r =>
+        this.extractDomain(r.metadata?.source_url || r.metadata?.url || '') === sourceDomain
+      ).length;
+
+      if (sourceCount >= maxPerSource) {
+        shouldInclude = false;
+      }
+
+      // Check URL path diversity
+      const urlPath = this.extractUrlPath(sourceUrl);
+      if (usedUrlPaths.has(urlPath)) {
+        shouldInclude = false;
+      }
+
+      // Check text similarity to prevent near-duplicates
+      if (shouldInclude && diversifiedResults.length > 0) {
+        const textSimilarity = this.calculateMaxTextSimilarity(result.text, diversifiedResults);
+        if (textSimilarity > textSimilarityThreshold) {
+          shouldInclude = false;
+        }
+      }
+
+      if (shouldInclude) {
+        diversifiedResults.push(result);
+        usedSources.add(sourceDomain);
+        usedUrlPaths.add(urlPath);
+
+        // Stop if we have enough diverse results
+        if (diversifiedResults.length >= this.maxChunksPerQuery) {
+          break;
+        }
+      }
+    }
+
+    logger.info('Result diversity applied', {
+      originalCount: results.length,
+      diversifiedCount: diversifiedResults.length,
+      uniqueSources: usedSources.size,
+      uniquePaths: usedUrlPaths.size
+    });
+
+    return diversifiedResults;
+  }
+
+  extractDomain(url) {
+    try {
+      if (!url) return '';
+      const urlObj = new URL(url);
+      return urlObj.hostname;
+    } catch {
+      return url.split('/')[0] || '';
+    }
+  }
+
+  extractUrlPath(url) {
+    try {
+      if (!url) return '';
+      const urlObj = new URL(url);
+      // Get path without query parameters, normalized
+      return urlObj.pathname.replace(/\/$/, '') || '/';
+    } catch {
+      return url.split('?')[0] || '';
+    }
+  }
+
+  calculateMaxTextSimilarity(text, existingResults) {
+    if (!text || existingResults.length === 0) return 0;
+
+    let maxSimilarity = 0;
+    const words1 = this.getTextWords(text);
+
+    for (const result of existingResults) {
+      if (!result.text) continue;
+      const words2 = this.getTextWords(result.text);
+      const similarity = this.calculateJaccardSimilarity(words1, words2);
+      maxSimilarity = Math.max(maxSimilarity, similarity);
+    }
+
+    return maxSimilarity;
+  }
+
+  getTextWords(text) {
+    return new Set(
+      text.toLowerCase()
+        .replace(/[^\w\s]/g, ' ')
+        .split(/\s+/)
+        .filter(word => word.length > 2)
+    );
+  }
+
+  calculateJaccardSimilarity(set1, set2) {
+    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const union = new Set([...set1, ...set2]);
+    return union.size === 0 ? 0 : intersection.size / union.size;
+  }
+
+  applyMetadataBoosts(result, currentBoost, queryAnalysis) {
+    let boost = currentBoost;
+    const metadata = result.metadata || {};
+    const title = metadata.title?.toLowerCase() || '';
+    const url = metadata.source_url || metadata.url || '';
+    const description = metadata.description?.toLowerCase() || '';
+
+    // 1. Source authority boosting
+    const domain = this.extractDomain(url);
+    if (domain.includes('docs.') || domain.includes('documentation')) {
+      boost *= 1.2; // Strong boost for official docs
+    } else if (domain.includes('github.com') && url.includes('/docs/')) {
+      boost *= 1.15; // Boost for GitHub documentation
+    } else if (title.includes('official') || title.includes('documentation')) {
+      boost *= 1.1; // Boost for official content
+    }
+
+    // 2. Content type boosting based on title and URL patterns
+    const contentTypeBoosts = {
+      'getting-started': 1.15,
+      'quick-start': 1.15,
+      'tutorial': 1.1,
+      'guide': 1.1,
+      'reference': 1.05,
+      'api': 1.05,
+      'troubleshooting': 1.1,
+      'faq': 1.05,
+      'examples': 1.08,
+      'best-practices': 1.08
+    };
+
+    for (const [pattern, boostValue] of Object.entries(contentTypeBoosts)) {
+      if (title.includes(pattern) || url.includes(pattern) || description.includes(pattern)) {
+        boost *= boostValue;
+        break; // Apply only the first match to avoid over-boosting
+      }
+    }
+
+    // 3. Query-specific content boosting
+    if (queryAnalysis.type === 'how_to') {
+      if (title.includes('setup') || title.includes('configure') || title.includes('install') ||
+          url.includes('/setup/') || url.includes('/configuration/') || url.includes('/install/')) {
+        boost *= 1.2;
+      }
+    } else if (queryAnalysis.type === 'troubleshooting') {
+      if (title.includes('error') || title.includes('troubleshoot') || title.includes('debug') ||
+          url.includes('/troubleshooting/') || url.includes('/errors/')) {
+        boost *= 1.25;
+      }
+    } else if (queryAnalysis.type === 'definition') {
+      if (title.includes('overview') || title.includes('introduction') || title.includes('concepts') ||
+          url.includes('/concepts/') || url.includes('/overview/')) {
+        boost *= 1.15;
+      }
+    }
+
+    // 4. Recency boosting (enhanced)
+    if (metadata.timestamp) {
+      const age = Date.now() - new Date(metadata.timestamp).getTime();
+      const daysOld = age / (1000 * 60 * 60 * 24);
+
+      if (daysOld < 7) {
+        boost *= 1.1; // Strong boost for very recent content
+      } else if (daysOld < 30) {
+        boost *= 1.05; // Moderate boost for recent content
+      } else if (daysOld > 365) {
+        boost *= 0.95; // Slight penalty for very old content
+      }
+    }
+
+    // 5. Content depth boosting
+    const wordCount = metadata.wordCount || 0;
+    if (wordCount > 200 && wordCount < 2000) {
+      boost *= 1.05; // Boost for substantial but not overwhelming content
+    } else if (wordCount < 50) {
+      boost *= 0.9; // Slight penalty for very short content
+    }
+
+    // 6. Structural position boosting
+    const chunkIndex = metadata.chunkIndex || 0;
+    const totalChunks = metadata.totalChunks || 1;
+
+    // Boost content from the beginning of documents (often contains key information)
+    if (chunkIndex === 0 && totalChunks > 1) {
+      boost *= 1.1;
+    } else if (chunkIndex < 3 && totalChunks > 5) {
+      boost *= 1.05;
+    }
+
+    return boost;
+  }
+
+  calculateBM25Score(query, text, k1 = 1.2, b = 0.75) {
+    const queryTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+    const docTerms = text.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+    const docLength = docTerms.length;
+
+    // Calculate average document length (approximation)
+    const avgDocLength = 100; // Approximate average chunk size in words
+
+    let bm25Score = 0;
+
+    for (const queryTerm of queryTerms) {
+      // Calculate term frequency (tf) in document
+      const tf = docTerms.filter(term => term === queryTerm).length;
+
+      if (tf === 0) continue;
+
+      // Calculate inverse document frequency (idf) approximation
+      // In a full implementation, this would be calculated across the entire corpus
+      const idf = Math.log((this.knowledgeBase.length + 1) / (1 + 1)); // Simplified IDF
+
+      // Calculate BM25 component for this term
+      const numerator = tf * (k1 + 1);
+      const denominator = tf + k1 * (1 - b + b * (docLength / avgDocLength));
+
+      bm25Score += idf * (numerator / denominator);
+    }
+
+    // Normalize score to 0-1 range
+    return Math.min(bm25Score / queryTerms.length, 1.0);
   }
 
   async rerankResults(results, originalQuery, expandedQuery, queryAnalysis) {

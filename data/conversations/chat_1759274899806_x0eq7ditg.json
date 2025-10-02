@@ -1,0 +1,42 @@
+{
+  "id": "chat_1759274899806_x0eq7ditg",
+  "messages": [
+    {
+      "id": "msg_1759274907778_bebwffr8j",
+      "type": "user",
+      "content": "What do you do replication in Snowflake",
+      "timestamp": "2025-09-30T23:28:27.778Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759274907778_j7ogzbae8",
+      "type": "bot",
+      "content": "In Snowflake, replication across multiple accounts is used for business continuity and disaster recovery purposes. This involves failing over databases across multiple Snowflake accounts and redirecting client connections. You can set up replication and failover processes to ensure data redundancy and availability in case of failures. More detailed information on this topic can be found in the Snowflake documentation under the section \"Introduction to replication and failover across multiple accounts\" [Source: Using Snowflake | Snowflake Documentation].",
+      "timestamp": "2025-09-30T23:28:27.778Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.snowflake.com/en/user-guide/",
+            "title": "Using Snowflake | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.snowflake.com/user-guide/intro-supported-features",
+            "title": "Overview of Key Features | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2025-09-30T23:28:27.776Z",
+    "lastUpdated": "2025-10-02T02:41:37.297Z",
+    "messageCount": 2,
+    "title": "What do you do replication in Snowflake"
+  }
+}

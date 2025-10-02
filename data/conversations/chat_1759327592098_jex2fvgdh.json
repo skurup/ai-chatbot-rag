@@ -1,0 +1,73 @@
+{
+  "id": "chat_1759327592098_jex2fvgdh",
+  "messages": [
+    {
+      "id": "msg_1759327632922_ro7p7hqmm",
+      "type": "user",
+      "content": "Can you provide me the steps to set up storage integration",
+      "timestamp": "2025-10-01T14:07:12.922Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759327632922_u4j3papaq",
+      "type": "bot",
+      "content": "To set up a storage integration in Snowflake, you need to follow these general steps:\n\n1. **Grant Required Privileges**: Ensure that the role you are using has or inherits the USAGE privilege on the storage integration. This is necessary for interacting with external stages. [Source: REMOVE | Snowflake Documentation]\n\n2. **Configure Cloud Storage Permissions**: Depending on the cloud storage service you are using, you need to grant specific roles or permissions to Snowflake in your cloud storage account:\n   - For Amazon S3: Grant the s3:DeleteObject permission. [Source: REMOVE | Snowflake Documentation]\n   - For Google Cloud Storage: Grant the storage.objects.delete permission. [Source: REMOVE | Snowflake Documentation]\n   - For Microsoft Azure (Blob storage): Grant the Storage Blob Data Contributor permission. [Source: REMOVE | Snowflake Documentation]\n\n3. **Set Up External Stages**: External stages can store unstructured data from cloud storage services like Amazon S3, Google Cloud Storage, or Microsoft Azure Blob storage. You can access files in cloud storage using scoped URLs that provide temporary access without granting stage privileges. [Source: Introduction to unstructured data | Snowflake Documentation]\n\nBy following these steps, you can successfully set up a storage integration in Snowflake for interacting with external stages and accessing unstructured data stored in cloud storage services.",
+      "timestamp": "2025-10-01T14:07:12.922Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.snowflake.com/sql-reference/sql/remove",
+            "title": "REMOVE | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.snowflake.com/user-guide/unstructured-intro",
+            "title": "Introduction to unstructured data | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    },
+    {
+      "id": "msg_1759331307591_ddaf6px62",
+      "type": "user",
+      "content": "Where is Result Caching  maintained in Snowflake",
+      "timestamp": "2025-10-01T15:08:27.591Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759331307591_6jy8z5tb1",
+      "type": "bot",
+      "content": "In Snowflake, Result Caching is maintained within the processing layer of the architecture. Snowflake manages query execution and result caching in this layer. When queries are processed using virtual warehouses, the processing layer handles the caching of query results to improve performance for subsequent identical queries. Each virtual warehouse is an MPP compute cluster that operates independently and does not share resources with other virtual warehouses, ensuring that result caching within each warehouse does not impact the performance of other warehouses. [Source: Key Concepts & Architecture | Snowflake Documentation]",
+      "timestamp": "2025-10-01T15:08:27.591Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.snowflake.com/user-guide/intro-key-concepts",
+            "title": "Key Concepts & Architecture | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 2
+          },
+          {
+            "url": "https://docs.snowflake.com/user-guide/warehouses-considerations",
+            "title": "Warehouse considerations | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2025-10-01T14:07:12.921Z",
+    "lastUpdated": "2025-10-02T02:41:37.319Z",
+    "messageCount": 4,
+    "title": "Where is Result Caching  maintained in Snowflake"
+  }
+}

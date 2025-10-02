@@ -1,0 +1,129 @@
+{
+  "id": "chat_1759275032251_tlyq4kd1h",
+  "messages": [
+    {
+      "id": "msg_1759275050847_jdi7oyd82",
+      "type": "user",
+      "content": "How do you do replication in Snowflake",
+      "timestamp": "2025-09-30T23:30:50.847Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759275050847_9opqsnilf",
+      "type": "bot",
+      "content": "In Snowflake, replication is managed through its own replication schedule, which allows you to set the frequency for replication at different intervals for different groups of objects. Additionally, in the case of failover groups, you can enable failover of groups individually. You have the flexibility to choose to failover all failover groups or only select failover groups based on your needs [Source: Introduction to business continuity & disaster recovery | Snowflake Documentation].",
+      "timestamp": "2025-09-30T23:30:50.847Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.snowflake.com/en/user-guide/replication-intro",
+            "title": "Introduction to business continuity & disaster recovery | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    },
+    {
+      "id": "msg_1759275071127_w59z7apvz",
+      "type": "user",
+      "content": "Can you provide me the steps",
+      "timestamp": "2025-09-30T23:31:11.127Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759275071127_6m97armkx",
+      "type": "bot",
+      "content": "I don't have specific steps for setting up replication in Snowflake based on the provided context. For detailed instructions on setting up replication in Snowflake, you may refer to the official Snowflake documentation or contact Snowflake support for assistance.",
+      "timestamp": "2025-09-30T23:31:11.127Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.atlan.com/product/connections/how-tos/manage-connectivity",
+            "title": "Manage connectivity | Atlan Documentation",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.atlan.com/apps/connectors/data-warehouses/databricks/how-tos/crawl-databricks",
+            "title": "Crawl Databricks | Atlan Documentation",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.snowflake.com/user-guide/ui-worksheet",
+            "title": "Using worksheets for queries / DML / DDL | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    },
+    {
+      "id": "msg_1759275208843_a5qz5csht",
+      "type": "user",
+      "content": "What is the difference between replication group and failover group",
+      "timestamp": "2025-09-30T23:33:28.842Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759275208843_9hv5htrgh",
+      "type": "bot",
+      "content": "In Snowflake, a replication group is a set of objects that can be replicated to a different region or cloud platform. On the other hand, a failover group is a collection of objects that can be failed over to another region or cloud platform in case of a disaster or outage. Each replication or failover group has its own replication schedule, allowing you to manage the frequency of replication for different sets of objects [Source: Introduction to business continuity & disaster recovery | Snowflake Documentation].",
+      "timestamp": "2025-09-30T23:33:28.842Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.snowflake.com/en/user-guide/replication-intro",
+            "title": "Introduction to business continuity & disaster recovery | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    },
+    {
+      "id": "msg_1759275695935_smxc4rvod",
+      "type": "user",
+      "content": "What is Accounts in Snowflake",
+      "timestamp": "2025-09-30T23:41:35.935Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759275695935_owgymy8nc",
+      "type": "bot",
+      "content": "In Snowflake, an account refers to the top-level entity that houses your databases, warehouses, and other objects. It represents the environment where you store your data and perform data operations. Each Snowflake account has its own unique account identifier and account URL, which are used to connect to Snowflake and access its features. Users can manage their Snowflake accounts, configure access control, update user profiles, and perform various administrative tasks within their accounts [Source: Snowsight quick tour | Snowflake Documentation].",
+      "timestamp": "2025-09-30T23:41:35.935Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.snowflake.com/user-guide/ui-snowsight-quick-tour",
+            "title": "Snowsight quick tour | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          },
+          {
+            "url": "https://docs.snowflake.com/index",
+            "title": "Welcome to Snowflake Documentation | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 1
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2025-09-30T23:30:50.846Z",
+    "lastUpdated": "2025-10-02T02:41:37.300Z",
+    "messageCount": 8,
+    "title": "Can you provide me the steps"
+  }
+}

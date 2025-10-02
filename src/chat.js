@@ -1,4 +1,6 @@
 import OpenAI from 'openai';
+import ConversationMemory from './conversationMemory.js';
+import SuggestionService from './suggestionService.js';
 
 class ChatService {
   constructor(ragEngine) {
@@ -9,6 +11,10 @@ class ChatService {
     this.model = 'gpt-3.5-turbo';
     this.conversationHistory = new Map();
     this.maxHistoryLength = 10;
+
+    // Initialize new services
+    this.conversationMemory = new ConversationMemory();
+    this.suggestionService = new SuggestionService();
   }
 
   async generateResponse(message, conversationId = 'default', searchStrategy = 'hybrid', sourceFilter = 'all') {
@@ -98,14 +104,56 @@ class ChatService {
 
       const response = completion.choices[0].message.content;
 
-      // Update conversation history
-      this.addToHistory(conversationId, { role: 'user', content: message });
-      this.addToHistory(conversationId, { role: 'assistant', content: response });
+      // Store the message exchange using the ConversationMemory's addMessage method
+      // This will generate proper message IDs that we can use for rating
+      let userMessageId = null;
+      let assistantMessageId = null;
+
+      if (this.conversationMemory) {
+        // Get the conversation before adding the message to count existing messages
+        const existingConversation = this.conversationMemory.getConversation(conversationId);
+        const messageCountBefore = existingConversation ? existingConversation.messages.length : 0;
+
+        // Add the message exchange
+        this.conversationMemory.addMessage(
+          conversationId,
+          message, // user message
+          response, // bot response
+          sources, // sources array
+          null, // ratings (will be added later when user rates)
+          [] // suggested questions (will be generated separately)
+        );
+
+        // Get the conversation after adding messages to extract the new message IDs
+        const updatedConversation = this.conversationMemory.getConversation(conversationId);
+        if (updatedConversation && updatedConversation.messages.length >= messageCountBefore + 2) {
+          // Get the last two messages (user and assistant)
+          const messages = updatedConversation.messages;
+          userMessageId = messages[messages.length - 2].id; // User message
+          assistantMessageId = messages[messages.length - 1].id; // Assistant message
+        }
+      }
+
+      // Also update the legacy conversation history for backward compatibility
+      this.addToHistory(conversationId, {
+        role: 'user',
+        content: message,
+        messageId: userMessageId
+      });
+      this.addToHistory(conversationId, {
+        role: 'assistant',
+        content: response,
+        messageId: assistantMessageId,
+        sources,
+        citations
+      });
 
       const processingTime = Date.now() - startTime;
 
       return {
         response,
+        messageId: assistantMessageId,
+        userMessageId,
         sources,
         citations,
         retrievedChunks: retrievedChunks.length,
@@ -331,10 +379,114 @@ No specific context is available for this query. Please provide a helpful respon
     this.maxHistoryLength = Math.max(1, length);
   }
 
+  // New methods for enhanced features
+  rateResponse(conversationId, messageId, rating, feedback = '') {
+    // Safety check for conversationMemory initialization
+    if (!this.conversationMemory) {
+      console.error('ConversationMemory not initialized');
+      return false;
+    }
+    return this.conversationMemory.rateResponse(conversationId, messageId, rating, feedback);
+  }
+
+  searchConversations(query, limit = 10) {
+    if (!this.conversationMemory) {
+      console.error('ConversationMemory not initialized');
+      return [];
+    }
+    return this.conversationMemory.searchConversations(query, limit);
+  }
+
+  getConversationList(limit = 20) {
+    if (!this.conversationMemory) {
+      console.error('ConversationMemory not initialized');
+      return [];
+    }
+    const conversations = this.conversationMemory.getAllConversations();
+    return conversations
+      .sort((a, b) => new Date(b.metadata.lastUpdated) - new Date(a.metadata.lastUpdated))
+      .slice(0, limit)
+      .map(conv => ({
+        id: conv.id,
+        title: conv.metadata.title,
+        lastUpdated: conv.metadata.lastUpdated,
+        messageCount: conv.metadata.messageCount
+      }));
+  }
+
+  async generateContextualSuggestions(conversationId) {
+    if (!this.conversationMemory) {
+      console.error('ConversationMemory not initialized');
+      return [];
+    }
+    const conversation = this.conversationMemory.getConversation(conversationId);
+    if (!conversation || conversation.messages.length === 0) {
+      return [];
+    }
+
+    const recentMessages = conversation.messages.slice(-6);
+    return await this.suggestionService.generateContextualSuggestions(recentMessages, null);
+  }
+
+  getConversationById(conversationId) {
+    if (!this.conversationMemory) {
+      console.error('ConversationMemory not initialized');
+      return null;
+    }
+    return this.conversationMemory.getConversation(conversationId);
+  }
+
   async streamResponse(message, conversationId = 'default', searchStrategy = 'hybrid') {
     // This would be used for streaming responses
     // Implementation would depend on your frontend's streaming setup
     return this.generateResponse(message, conversationId, searchStrategy);
+  }
+
+  // Enhanced conversation analysis
+  async analyzeConversation(conversationId) {
+    if (!this.conversationMemory) {
+      console.error('ConversationMemory not initialized');
+      return null;
+    }
+    const conversation = this.conversationMemory.getConversation(conversationId);
+    if (!conversation) {
+      return null;
+    }
+
+    const analysis = {
+      id: conversationId,
+      title: conversation.metadata.title,
+      messageCount: conversation.metadata.messageCount,
+      duration: new Date(conversation.metadata.lastUpdated) - new Date(conversation.metadata.created),
+      topics: [],
+      averageResponseLength: 0,
+      userSatisfaction: 0,
+      sourceUsage: {}
+    };
+
+    // Calculate metrics
+    const botMessages = conversation.messages.filter(m => m.type === 'bot');
+    if (botMessages.length > 0) {
+      analysis.averageResponseLength = botMessages.reduce((sum, m) => sum + m.content.length, 0) / botMessages.length;
+
+      // Calculate user satisfaction from ratings
+      const ratedMessages = botMessages.filter(m => m.metadata.rating);
+      if (ratedMessages.length > 0) {
+        analysis.userSatisfaction = ratedMessages.reduce((sum, m) => sum + m.metadata.rating.score, 0) / ratedMessages.length;
+      }
+
+      // Count source usage
+      botMessages.forEach(message => {
+        if (message.metadata.sources) {
+          message.metadata.sources.forEach(source => {
+            const domain = source.url ? new URL(source.url).hostname : 'unknown';
+            analysis.sourceUsage[domain] = (analysis.sourceUsage[domain] || 0) + 1;
+          });
+        }
+      });
+    }
+
+    return analysis;
   }
 }
 

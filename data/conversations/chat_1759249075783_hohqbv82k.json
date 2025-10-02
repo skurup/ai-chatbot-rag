@@ -1,0 +1,36 @@
+{
+  "id": "chat_1759249075783_hohqbv82k",
+  "messages": [
+    {
+      "id": "msg_1759249113017_wqijkh2n7",
+      "type": "user",
+      "content": "How do micro-partitions work in Snowflake",
+      "timestamp": "2025-09-30T16:18:33.017Z",
+      "metadata": {}
+    },
+    {
+      "id": "msg_1759249113017_3d4e9q9pi",
+      "type": "bot",
+      "content": "The concept of micro-partitions is fundamental to how Snowflake organizes and stores data efficiently. In Snowflake, data is stored in micro-partitions which are immutable, automatically compressed sets of files. These micro-partitions are typically 50-500 MB in size and contain a portion of the table's data. When a table is queried, Snowflake's query processing engine optimizes performance by reading only the relevant micro-partitions, leading to faster query execution times. Additionally, as new data is loaded or existing data is modified, Snowflake can efficiently manage these changes by creating new micro-partitions, enabling time-travel queries and ensuring data consistency and reliability. [Source: Welcome to Snowflake Documentation | Snowflake Documentation (https://docs.snowflake.com/index)]",
+      "timestamp": "2025-09-30T16:18:33.017Z",
+      "metadata": {
+        "sources": [
+          {
+            "url": "https://docs.snowflake.com/index",
+            "title": "Welcome to Snowflake Documentation | Snowflake Documentation",
+            "similarity": 1,
+            "chunks": 2
+          }
+        ],
+        "suggestedQuestions": [],
+        "rating": null
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2025-09-30T16:18:33.016Z",
+    "lastUpdated": "2025-10-02T02:41:37.280Z",
+    "messageCount": 2,
+    "title": "How do micro-partitions work in Snowflake"
+  }
+}

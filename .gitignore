@@ -117,10 +117,19 @@ Thumbs.db
 uploads/
 exports/
 data/scraped_urls.json
+data/conversations.json
 qdrant.zip
+response.json
 
 # Qdrant data (if running locally)
 qdrant_data/
 
+# Log management
+logs/
+*.pid
+.log_manager.lock
+
 # Test files
-test-document.txt
+test-document*.txt
+test-document*.rtf
+test-document*.pdf
