@@ -1,6 +1,6 @@
-# AI Chatbot with Advanced RAG 🤖
+# Lumina - AI Search & Knowledge Assistant 🔍
 
-A production-ready conversational AI chatbot built with **Retrieval-Augmented Generation (RAG)** capabilities. The system scrapes websites, processes content into vector embeddings, and uses advanced retrieval strategies to provide accurate, context-aware responses with source attribution.
+A production-ready conversational AI assistant built with **Retrieval-Augmented Generation (RAG)** capabilities. Lumina intelligently searches through your knowledge base, processes content into vector embeddings, and uses advanced retrieval strategies to provide accurate, context-aware responses with source attribution.
 
 ## ✨ **Latest Enhancements**
 
@@ -9,7 +9,6 @@ A production-ready conversational AI chatbot built with **Retrieval-Augmented Ge
 - 📊 **Enhanced Citation System** - Rich citations with confidence scoring and keyword highlighting
 - 🎯 **Advanced Source Filtering** - Filter by brand/domain (Atlan, Snowflake, Databricks)
 - 🔄 **Recursive Web Scraping** - Intelligent link following with depth control and URL tracking
-- 📁 **File Upload Support** - Process TXT, DOCX, DOC, PDF, and RTF documents
 - 📤 **Conversation Export** - Export chat history in JSON, TXT, CSV, and Markdown formats
 - 🔍 **Multi-Strategy Search** - Semantic, keyword, hybrid, and contextual search with intelligent fallbacks
 - 📈 **Comprehensive Analytics** - Real-time monitoring, health checks, and performance metrics
@@ -77,8 +76,8 @@ npm run dev
 npm start
 ```
 
-6. **Access the application:**
-- **Chat Interface:** http://localhost:3000
+6. **Access Lumina:**
+- **Lumina Chat Interface:** http://localhost:3000
 - **Analytics Dashboard:** http://localhost:3000/dashboard
 - **Health Check:** http://localhost:3000/api/health
 - **Qdrant Dashboard:** http://localhost:6333/dashboard
@@ -139,7 +138,6 @@ npm start
 - **Source Filtering:** Filter by brand/domain (Atlan, Snowflake, Databricks)
 - **URL Tracking:** Persistent tracking to prevent re-scraping
 - **Recursive Scraping:** Intelligent link following with depth control
-- **File Processing:** Support for TXT, DOCX, and DOC documents
 - **Conversation Export:** Multiple export formats (JSON, TXT, CSV, Markdown)
 - **Vector Database:** High-performance Qdrant integration with fallback
 - **Intelligent Fallbacks:** Automatic strategy switching for optimal results
@@ -171,7 +169,6 @@ ai-chatbot-rag/
 │   ├── qdrantService.js # Qdrant vector database service
 │   ├── citationManager.js # Enhanced citation generation
 │   ├── queryOptimizer.js # Query preprocessing and optimization
-│   ├── fileProcessor.js # File upload processing (TXT, DOCX, DOC)
 │   ├── conversationExport.js # Conversation export functionality
 │   ├── urlTracker.js     # Persistent URL tracking
 │   └── logger.js        # Structured logging with Winston
@@ -187,7 +184,6 @@ ai-chatbot-rag/
 ├── data/                # Persistent data storage
 │   └── scraped_urls.json # URL tracking data
 ├── logs/                # Application logs
-├── uploads/             # User uploaded files
 └── exports/             # Exported conversation files
 ```
 
@@ -314,27 +310,6 @@ Add single URL to knowledge base with recursive scraping.
 }
 ```
 
-#### `POST /api/upload`
-Upload and process documents (TXT, DOCX, DOC).
-
-```javascript
-// FormData request
-const formData = new FormData();
-formData.append('file', fileInput.files[0]);
-
-// Response
-{
-  "success": true,
-  "message": "File processed successfully",
-  "document": {
-    "filename": "document.pdf",
-    "type": "application/pdf",
-    "size": 1024000,
-    "chunks": 15,
-    "wordCount": 3000
-  }
-}
-```
 
 #### `GET /api/conversation/:id/export`
 Export conversation history in multiple formats.
@@ -535,15 +510,15 @@ npm run dev
 
 ## 🎨 User Interface
 
-### Chat Interface Features
+### Lumina Chat Interface Features
 
-- **Real-time Messaging:** Instant responses with typing indicators
+- **Smart Search:** Intelligent AI-powered knowledge discovery with spotlight-style interface
+- **Real-time Messaging:** Instant responses with typing indicators and glowing animations
 - **Enhanced Citations:** Rich citation sidebar with confidence scores and keyword highlighting
 - **Source Filtering:** Filter by brand/domain (Atlan, Snowflake, Databricks)
 - **Strategy Selection:** Choose retrieval method (semantic/keyword/hybrid/contextual)
 - **Conversation History:** Persistent chat sessions with export options
-- **File Upload:** Drag-and-drop document processing (TXT, DOCX, DOC)
-- **Responsive Design:** Mobile-friendly interface with modern UI
+- **Modern Design:** Spotlight-themed interface with glowing effects
 - **Character Limits:** Input validation and word count
 - **Citation Export:** Export citations in multiple formats
 
@@ -664,12 +639,12 @@ git push heroku main
 Create `app.yaml`:
 
 ```yaml
-name: ai-chatbot-rag
+name: lumina-ai-assistant
 services:
 - name: web
   source_dir: /
   github:
-    repo: your-username/ai-chatbot-rag
+    repo: your-username/lumina-ai-assistant
     branch: main
   run_command: npm start
   environment_slug: node-js
@@ -880,7 +855,6 @@ curl -X POST http://localhost:3000/api/test-search \
 - [x] **Enhanced Citation System** - Rich citations with confidence scoring
 - [x] **Source Filtering** - Brand/domain-based filtering (Atlan, Snowflake, Databricks)
 - [x] **Recursive Web Scraping** - Intelligent link following with URL tracking
-- [x] **File Upload Support** - TXT, DOCX, DOC, PDF, RTF document processing
 - [x] **Conversation Export** - Multiple export formats (JSON, TXT, CSV, Markdown)
 - [x] **Multi-Strategy Search** - Semantic, keyword, hybrid, contextual with fallbacks
 - [x] **Comprehensive Logging** - Structured logging with Winston
@@ -890,7 +864,7 @@ curl -X POST http://localhost:3000/api/test-search \
 ### 🚧 In Progress / Next Phase
 
 - [ ] **User Authentication** - JWT-based authentication and sessions
-- [ ] **PDF Processing** - Enhanced PDF document support
+- [ ] **Document Upload** - Support for PDF, DOCX, TXT, and other document formats
 - [ ] **Mobile App** - React Native mobile application
 - [ ] **Advanced Analytics** - Detailed usage analytics and insights
 - [ ] **Webhook Integrations** - Real-time notifications and integrations
@@ -933,4 +907,4 @@ For issues and questions:
 
 **Built with ❤️ for the AI community**
 
-*Ready to deploy your own AI-powered knowledge assistant!*
+*Lumina - Illuminating knowledge with AI-powered search!*
